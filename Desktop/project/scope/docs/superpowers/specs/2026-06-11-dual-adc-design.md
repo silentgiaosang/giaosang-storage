@@ -6,7 +6,7 @@
 
 ## Goal
 
-Split the two oscilloscope channels from single-ADC scan mode (ADC1 scanning CH14→CH15) into **two independent ADCs** (ADC1 on PC4, ADC2 on PC5), both triggered by the same TIM2 TRGO. Each channel gets the full sample rate instead of half.
+Split the two oscilloscope channels from single-ADC scan mode (ADC1 scanning CH14→CH15) into **two independent ADCs** (ADC1 on PC4, ADC2 on PB1), both triggered by the same TIM2 TRGO. Each channel gets the full sample rate instead of half.
 
 ## Motivation
 
@@ -46,7 +46,7 @@ Memory footprint unchanged (4096 × 2 bytes = 8KB). Each channel gets its own ci
 | Parameter | Value |
 |-----------|-------|
 | Instance | ADC2 |
-| Channel | IN15 (PC5) |
+| Channel | IN9 (PB1) |
 | Scan mode | Disabled (single channel) |
 | Trigger | TIM2 TRGO, rising edge |
 | DMA | DMA2 Stream2, Channel 1, circular |
@@ -74,8 +74,11 @@ Both DMA streams are configured identically: circular mode, half-word transfers,
 ### `adc.h` / `adc.c`
 - **Add** `extern ADC_HandleTypeDef hadc2;`
 - **Add** `extern DMA_HandleTypeDef hdma_adc2;`
-- **Add** `void MX_ADC2_Init(void);` — configures ADC2_IN15, DMA2_Stream2
-- Rename existing handle: `hdma_adc1` stays for ADC1
+- **Add** `void MX_ADC2_Init(void);` — configures ADC2_IN9 (PB1), DMA2_Stream2
+- **Modify** `MX_ADC1_Init()`: Remove CH15 (PC5), keep only CH14 (PC4) single-channel
+- **Modify** `HAL_ADC_MspInit()`: ADC1 section uses only `GPIO_PIN_4` (was `GPIO_PIN_4 | GPIO_PIN_5`)
+- **Add** ADC2 section in `HAL_ADC_MspInit()`: Enable GPIOB clock, init PB1 as analog
+- **Add** ADC2 section in `HAL_ADC_MspDeInit()`: DeInit PB1, disable ADC2 clock
 
 ### `oscilloscope.c`
 
@@ -97,6 +100,9 @@ Both DMA streams are configured identically: circular mode, half-word transfers,
 ### `main.c`
 - Add `MX_ADC2_Init();` in initialization sequence (before `Osc_Init()`)
 
+### `Core/Src/gpio.c`
+- Update comment: `PC4=CH0, PC5=CH1` → `PC4=CH0(ADC1), PB1=CH1(ADC2)`
+
 ### `dma.h` / `dma.c` (CubeMX)
 - CubeMX will regenerate these with ADC2 DMA handle. Manual edits may be needed if CubeMX is not re-run.
 
@@ -107,7 +113,7 @@ TIM2 TRGO (rising edge)
     │
     ├─→ ADC1 (CH14/PC4) → conversion → DMA2_Stream0 → adc_buf[0][...]
     │
-    └─→ ADC2 (CH15/PC5) → conversion → DMA2_Stream2 → adc_buf[1][...]
+    └─→ ADC2 (CH9/PB1)  → conversion → DMA2_Stream2 → adc_buf[1][...]
 
 33ms display tick:
     Osc_Capture()
@@ -136,12 +142,12 @@ TIM2 TRGO (rising edge)
 3. **Encoder:** Rotate timebase and V/div encoders, verify display updates
 4. **FFT:** Switch to FFT mode, verify spectrum renders on both channels
 5. **Coupling:** Toggle CH1/CH2 DC/AC, verify relay toggles
-6. **Test signal:** Verify DAC 1kHz square wave shows correct waveform on CH0
-7. **Frequency:** Verify measured frequency matches DAC test signal
+6. **Test signal:** Apply external 1kHz square wave to CH0, verify correct waveform display
+7. **Frequency:** Verify measured frequency matches external test signal
 
 ## Files NOT Changed
 
 - `hardware/lcd.c` / `lcd.h` — display layer, only reads `disp_buf`
 - `hardware/ui.c` / `ui.h` — rendering, only reads `disp_buf` and `g_osc`
-- `Core/Src/gpio.c` / `tim.c` / `spi.c` — peripherals, no ADC dependency
+- `Core/Src/gpio.c` / `tim.c` / `spi.c` — peripherals, no ADC dependency (gpio.c comment-only)
 - `Core/Src/stm32f4xx_it.c` — no ADC ISR (DMA-driven)
