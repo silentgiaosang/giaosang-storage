@@ -1,0 +1,68 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Tool Versions:</h2>
+IDE-Version: ¦ÌVision V5.40.0.0
+Copyright (C) 2024 ARM Ltd and ARM Germany GmbH. All rights reserved.
+License Information: 11 giao, 11, LIC=IK1BF-64GGS-LQF0Q-NPYRF-FZ8PK-I7WBR
+ 
+Tool Versions:
+Toolchain:       MDK-ARM Plus  Version: 5.40.0.3
+Toolchain Path:  C:\Users\giao\AppData\Local\Keil_v5\ARM\ARMCLANG\Bin
+C Compiler:      ArmClang.exe V6.22
+Assembler:       Armasm.exe V6.22
+Linker/Locator:  ArmLink.exe V6.22
+Library Manager: ArmAr.exe V6.22
+Hex Converter:   FromElf.exe V6.22
+CPU DLL:         SARMCM3.DLL V5.40.0.3
+Dialog DLL:      DCM.DLL V1.17.5.0
+Target DLL:      STLink\ST-LINKIII-KEIL_SWO.dll V3.3.0.0
+Dialog DLL:      TCM.DLL V1.56.4.0
+ 
+<h2>Project:</h2>
+C:\Users\giao\Desktop\project\scope\MDK-ARM\scope.uvprojx
+Project File Date:  06/02/2026
+
+<h2>Output:</h2>
+*** Using Compiler 'V6.22', folder: 'C:\Users\giao\AppData\Local\Keil_v5\ARM\ARMCLANG\Bin'
+Build target 'scope'
+../Core/Src/main.c(127): warning: incompatible pointer types passing 'uint16_t[2][2048]' (aka 'unsigned short[2][2048]') to parameter of type 'const uint16_t *' (aka 'const unsigned short *') [-Wincompatible-pointer-types]
+  127 |         FFT_Process(g_osc.adc_buf, OSC_ADC_BUF_SIZE,
+      |                     ^~~~~~~~~~~~~
+../hardware\fft.h(43): note: passing argument to parameter 'adc_buf' here
+   43 | void FFT_Process(const uint16_t *adc_buf, uint32_t buf_len,
+      |                                  ^
+1 warning generated.
+compiling main.c...
+compiling oscilloscope.c...
+linking...
+Program Size: Code=41260 RO-data=122032 RW-data=28 ZI-data=20180  
+FromELF: creating hex file...
+"scope\scope.axf" - 0 Error(s), 1 Warning(s).
+
+<h2>Software Packages used:</h2>
+
+Package Vendor: ARM
+                https://www.keil.com/pack/ARM.CMSIS.6.2.0.pack
+                ARM::CMSIS@6.2.0
+                CMSIS (Common Microcontroller Software Interface Standard)
+   * Component: CORE Version: 6.1.1
+
+Package Vendor: Keil
+                https://www.keil.com/pack/Keil.STM32F4xx_DFP.3.1.0.pack
+                Keil::STM32F4xx_DFP@3.1.0
+                STMicroelectronics STM32F4 Series Device Support
+
+<h2>Collection of Component include folders:</h2>
+  ./RTE/_scope
+  C:/Users/giao/AppData/Local/Arm/Packs/ARM/CMSIS/6.2.0/CMSIS/Core/Include
+
+<h2>Collection of Component Files used:</h2>
+
+   * Component: ARM::CMSIS:CORE@6.1.1
+      Include file:  CMSIS/Core/Include/tz_context.h
+Build Time Elapsed:  00:00:04
+</pre>
+</body>
+</html>
