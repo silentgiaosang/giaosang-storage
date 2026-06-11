@@ -40,12 +40,17 @@ static inline uint16_t _clamp(int32_t v, uint16_t lo, uint16_t hi) {
     return (uint16_t)v;
 }
 
-/* ADC值→像素Y(考虑V/div缩放, 中心=2048) */
-static uint16_t _adc_to_y(uint16_t adc, uint16_t ch_bot, uint16_t adc_span)
+/* 耦合偏置: DC=850mV, AC=1.7V → ADC值 */
+#define ADC_BIAS_DC   1055   /* 850mV * 4096 / 3.3V */
+#define ADC_BIAS_AC   2110   /* 1.7V * 4096 / 3.3V  */
+
+/* ADC值→像素Y(根据通道耦合偏置, V/div缩放) */
+static uint16_t _adc_to_y(uint16_t adc, uint8_t ch, uint16_t adc_span)
 {
-    int32_t center_adc = 2048;
+    uint16_t ch_bot = (ch == 0) ? CH0_BOT : CH1_BOT;
+    int32_t center_adc = g_osc.coupling_dc[ch] ? ADC_BIAS_DC : ADC_BIAS_AC;
     int32_t half_h     = (UI_CH_HEIGHT - 1) / 2;  /* 67 */
-    int32_t mid_y      = ch_bot - half_h;          /* CH0:67, CH1:202 */
+    int32_t mid_y      = ch_bot - half_h;
     int32_t offset     = (int32_t)adc - center_adc;
     int32_t scaled     = offset * half_h * 2 / (int32_t)adc_span;
     return _clamp(mid_y - scaled, ch_bot - (UI_CH_HEIGHT - 1), ch_bot);
@@ -104,7 +109,6 @@ void UI_DrawWaveform(uint8_t ch, const uint16_t *disp_buf, uint32_t trig_pos,
 {
     uint8_t  *first_draw = (ch == 0) ? &s_first_draw_ch0 : &s_first_draw_ch1;
     uint16_t *prev_buf   = (ch == 0) ? s_prev_buf_ch0   : s_prev_buf_ch1;
-    uint16_t ch_bot       = (ch == 0) ? CH0_BOT          : CH1_BOT;
     uint16_t wave_color   = (ch == 0) ? UI_WAVE_COLOR_CH0 : UI_WAVE_COLOR_CH1;
 
     uint16_t adc_span = Osc_GetAdcSpan();
@@ -115,7 +119,7 @@ void UI_DrawWaveform(uint8_t ch, const uint16_t *disp_buf, uint32_t trig_pos,
         uint16_t prev_y = 0xFFFF;
         for (uint32_t xi = 0; xi < OSC_DISP_WIDTH; xi++)
         {
-            uint16_t y = _adc_to_y(disp_buf[xi], ch_bot, adc_span);
+            uint16_t y = _adc_to_y(disp_buf[xi], ch, adc_span);
             LCD_DrawPoint((uint16_t)xi, y, wave_color);
 
             if (prev_y != 0xFFFF && xi > 0)
@@ -126,7 +130,7 @@ void UI_DrawWaveform(uint8_t ch, const uint16_t *disp_buf, uint32_t trig_pos,
         /* 触发标记(仅CH0) */
         if (use_trigger && trig_found && trig_pos < OSC_DISP_WIDTH)
         {
-            uint16_t ty = _adc_to_y(disp_buf[trig_pos], CH0_BOT, adc_span);
+            uint16_t ty = _adc_to_y(disp_buf[trig_pos], 0, adc_span);
             uint16_t tx = (uint16_t)trig_pos;
             uint16_t ch_top = CH0_BOT - (UI_CH_HEIGHT - 1);
             LCD_DrawLine(tx, (ty > 3) ? (ty - 3) : ch_top,
@@ -145,7 +149,7 @@ void UI_DrawWaveform(uint8_t ch, const uint16_t *disp_buf, uint32_t trig_pos,
     /* 擦除旧触发标记(仅CH0) */
     if (use_trigger && s_prev_trig_found && s_prev_trig_pos < OSC_DISP_WIDTH)
     {
-        uint16_t oty = _adc_to_y(s_prev_buf_ch0[s_prev_trig_pos], CH0_BOT, adc_span);
+        uint16_t oty = _adc_to_y(s_prev_buf_ch0[s_prev_trig_pos], 0, adc_span);
         uint16_t otx = (uint16_t)s_prev_trig_pos;
         uint16_t ch0_top = CH0_BOT - (UI_CH_HEIGHT - 1);
         LCD_DrawLine(otx, (oty > 3) ? (oty - 3) : ch0_top,
@@ -160,8 +164,8 @@ void UI_DrawWaveform(uint8_t ch, const uint16_t *disp_buf, uint32_t trig_pos,
 
     for (uint32_t xi = 0; xi < OSC_DISP_WIDTH; xi++)
     {
-        uint16_t y_old = _adc_to_y(prev_buf[xi], ch_bot, adc_span);
-        uint16_t y_new = _adc_to_y(disp_buf[xi], ch_bot, adc_span);
+        uint16_t y_old = _adc_to_y(prev_buf[xi], ch, adc_span);
+        uint16_t y_new = _adc_to_y(disp_buf[xi], ch, adc_span);
 
         /* 擦除旧连线 */
         if (prev_y_old != 0xFFFF && xi > 0)
@@ -191,7 +195,7 @@ void UI_DrawWaveform(uint8_t ch, const uint16_t *disp_buf, uint32_t trig_pos,
 
         if (trig_found && trig_pos < OSC_DISP_WIDTH)
         {
-            uint16_t nty = _adc_to_y(disp_buf[trig_pos], CH0_BOT, adc_span);
+            uint16_t nty = _adc_to_y(disp_buf[trig_pos], 0, adc_span);
             uint16_t ntx = (uint16_t)trig_pos;
             uint16_t ch0_top = CH0_BOT - (UI_CH_HEIGHT - 1);
             LCD_DrawLine(ntx, (nty > 3) ? (nty - 3) : ch0_top,
@@ -377,17 +381,29 @@ void UI_DrawStatusBar(const Oscilloscope_t *osc)
 
     /* ---- Line1: 时基+模式+V/div ---- */
     char line1[32];
-    /* 直接用时基表标签, 始终显示档位内值 */
     const char *tdiv_str = g_tb_table[osc->timebase].label;
 
-    snprintf(line1, sizeof(line1), "%s%c %c%c %s %s",
-             tdiv_str,
-             osc->auto_tb ? 'A' : 'M',
-             (osc->trig_mode == TRIG_AUTO)   ? 'A' :
-             (osc->trig_mode == TRIG_NORMAL) ? 'N' : 'S',
-             (osc->trig_edge == EDGE_RISING) ? 'R' : 'F',
-             (osc->disp_mode == DISP_WAVEFORM) ? "Wav" : "FFT",
-             g_vscale_table[osc->vdiv].label);
+    if (g_trig_adj_mode)
+    {
+        float trig_v = osc->trig_level * 3.3f / 4096.0f;
+        snprintf(line1, sizeof(line1), "TRIG:%.2fV %c%c %s %s",
+                 trig_v,
+                 (osc->trig_mode == TRIG_AUTO)   ? 'A' :
+                 (osc->trig_mode == TRIG_NORMAL) ? 'N' : 'S',
+                 (osc->trig_edge == EDGE_RISING) ? 'R' : 'F',
+                 g_vscale_table[osc->vdiv].label);
+    }
+    else
+    {
+        snprintf(line1, sizeof(line1), "%s%c %c%c %s %s",
+                 tdiv_str,
+                 osc->auto_tb ? 'A' : 'M',
+                 (osc->trig_mode == TRIG_AUTO)   ? 'A' :
+                 (osc->trig_mode == TRIG_NORMAL) ? 'N' : 'S',
+                 (osc->trig_edge == EDGE_RISING) ? 'R' : 'F',
+                 (osc->disp_mode == DISP_WAVEFORM) ? "Wav" : "FFT",
+                 g_vscale_table[osc->vdiv].label);
+    }
     /* ---- Line2: CH0 ---- */
     char line2[32];
     const OscMeasure_t *m0 = &osc->measure[OSC_CH0];

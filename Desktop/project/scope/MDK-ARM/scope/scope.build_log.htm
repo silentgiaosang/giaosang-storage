@@ -22,22 +22,19 @@ Dialog DLL:      TCM.DLL V1.56.4.0
  
 <h2>Project:</h2>
 C:\Users\giao\Desktop\project\scope\MDK-ARM\scope.uvprojx
-Project File Date:  06/02/2026
+Project File Date:  06/11/2026
 
 <h2>Output:</h2>
 *** Using Compiler 'V6.22', folder: 'C:\Users\giao\AppData\Local\Keil_v5\ARM\ARMCLANG\Bin'
 Build target 'scope'
-../Core/Src/main.c(127): warning: incompatible pointer types passing 'uint16_t[2][2048]' (aka 'unsigned short[2][2048]') to parameter of type 'const uint16_t *' (aka 'const unsigned short *') [-Wincompatible-pointer-types]
-  127 |         FFT_Process(g_osc.adc_buf, OSC_ADC_BUF_SIZE,
-      |                     ^~~~~~~~~~~~~
-../hardware\fft.h(43): note: passing argument to parameter 'adc_buf' here
-   43 | void FFT_Process(const uint16_t *adc_buf, uint32_t buf_len,
-      |                                  ^
+compiling stm32f4xx_it.c...
+../hardware/ui.c(389): warning: more '%' conversions than data arguments [-Wformat-insufficient-args]
+  389 |         snprintf(line1, sizeof(line1), "TRIG:%.2fV %c%c %s %s",
+      |                                                            ~^
 1 warning generated.
-compiling main.c...
-compiling oscilloscope.c...
+compiling ui.c...
 linking...
-Program Size: Code=41260 RO-data=122032 RW-data=28 ZI-data=20180  
+Program Size: Code=41772 RO-data=122056 RW-data=28 ZI-data=20188  
 FromELF: creating hex file...
 "scope\scope.axf" - 0 Error(s), 1 Warning(s).
 
@@ -62,7 +59,7 @@ Package Vendor: Keil
 
    * Component: ARM::CMSIS:CORE@6.1.1
       Include file:  CMSIS/Core/Include/tz_context.h
-Build Time Elapsed:  00:00:04
+Build Time Elapsed:  00:00:05
 </pre>
 </body>
 </html>

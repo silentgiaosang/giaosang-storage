@@ -244,7 +244,12 @@ static void IO_Process(void)
         UI_ClearWaveAreas(); UI_ResetCache();
         if (g_osc.disp_mode == DISP_WAVEFORM) UI_DrawGrids();
       }
-      /* K5(PD10), K6(PD8): 预留 */
+      else if (i == 4)  /* K5(PD10): 触发调节模式 */
+      {
+        g_trig_adj_mode = !g_trig_adj_mode;
+        UI_ResetStatusBar();
+      }
+      /* K6(PD8): 预留 */
     }
     btn_last[i] = bn[i];
   }

@@ -248,7 +248,16 @@ void EXTI0_IRQHandler(void)
     uint8_t b2 = (HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_1) == GPIO_PIN_SET) ? 1 : 0;
     if (b1 != b2) return;
     uint8_t b = b1;
-    if (b)
+    if (g_trig_adj_mode)
+    {
+      /* 触发调节模式: SW3调整触发电平 */
+      int32_t new_level = (int32_t)g_osc.trig_level + (b ? 40 : -40);
+      if (new_level < 0)   new_level = 0;
+      if (new_level > 4095) new_level = 4095;
+      Osc_SetTrigLevel((uint16_t)new_level);
+      g_enc_ui_dirty = 1;
+    }
+    else if (b)
     {
       /* CCW: V/div 减小(放大波形) */
       if (g_osc.vdiv < VSCALE_500MV)

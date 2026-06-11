@@ -151,6 +151,7 @@ extern Oscilloscope_t g_osc;
 extern const TimebaseEntry_t g_tb_table[TB_NUM];
 extern const VScaleEntry_t  g_vscale_table[VSCALE_NUM];
 extern volatile uint8_t g_enc_ui_dirty;   /* 编码器中断触发UI刷新 */
+extern volatile uint8_t g_trig_adj_mode;  /* 1=触发调节模式, SW2调电平 */
 
 /* =========================== API 声明 =========================== */
 void Osc_Init(void);

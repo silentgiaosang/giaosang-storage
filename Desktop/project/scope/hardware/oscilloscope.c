@@ -21,6 +21,7 @@ extern DMA_HandleTypeDef hdma_adc2;
 /* =========================== 全局实例 =========================== */
 Oscilloscope_t g_osc;
 volatile uint8_t g_enc_ui_dirty = 0;   /* 编码器ISR触发UI刷新 */
+volatile uint8_t g_trig_adj_mode = 0;  /* 1=触发调节模式, SW2调电平 */
 
 /* =========================== 时基参数表 =========================== */
 /* TIM2时钟 = APB1_Timer = 84MHz (APB1=42MHz, Timer x2)              */
