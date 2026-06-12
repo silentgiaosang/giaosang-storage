@@ -23,7 +23,6 @@ extern "C" {
 #define OSC_PRE_TRIG             60U      /* 预触发点数(屏幕左起1/4)    */
 #define OSC_CH0                  0        /* 通道0索引                   */
 #define OSC_CH1                  1        /* 通道1索引                   */
-#define OSC_WAVE_THRESHOLD       124U     /* 波形有无判定Vpp阈值(~0.1V) */
 
 /* =========================== 时基枚举 (12档) ================ */
 typedef enum {
@@ -63,9 +62,9 @@ typedef enum {
 
 /* =========================== 垂直灵敏度 =========================== */
 typedef enum {
-    VSCALE_2V = 0,      /* 2V/div                                        */
+    VSCALE_10MV = 0,    /* 10mV/div                                      */
+    VSCALE_100MV,       /* 100mV/div                                     */
     VSCALE_1V,          /* 1V/div                                        */
-    VSCALE_500MV,       /* 500mV/div                                     */
     VSCALE_NUM
 } OscVScale_t;
 
@@ -141,6 +140,7 @@ typedef struct {
     float   fft_in[FFT_SIZE * 2];              /* FFT输入缓冲(实部+虚部)  */
     float   fft_out[FFT_SIZE];                 /* FFT输出缓冲              */
     float   fft_sample_rate;                   /* FFT当前采样率(Hz)        */
+    WaveType_t  wave_type;                     /* 波形类型(FFT检测结果)    */
 
     /* ---- 运行 ---- */
     uint8_t running;                          /* 1=ADC+DMA正在运行     */
@@ -152,6 +152,8 @@ extern const TimebaseEntry_t g_tb_table[TB_NUM];
 extern const VScaleEntry_t  g_vscale_table[VSCALE_NUM];
 extern volatile uint8_t g_enc_ui_dirty;   /* 编码器中断触发UI刷新 */
 extern volatile uint8_t g_trig_adj_mode;  /* 1=触发调节模式, SW2调电平 */
+extern volatile uint8_t  g_calib_state;   /* 0=空闲 1=校正中 2=校正完成 */
+extern volatile uint32_t g_calib_start_ms;
 
 /* =========================== API 声明 =========================== */
 void Osc_Init(void);

@@ -22,6 +22,8 @@ extern DMA_HandleTypeDef hdma_adc2;
 Oscilloscope_t g_osc;
 volatile uint8_t g_enc_ui_dirty = 0;   /* 编码器ISR触发UI刷新 */
 volatile uint8_t g_trig_adj_mode = 0;  /* 1=触发调节模式, SW2调电平 */
+volatile uint8_t  g_calib_state = 0;    /* 0=空闲 1=校正中 2=校正完成 */
+volatile uint32_t g_calib_start_ms = 0;
 
 /* =========================== 时基参数表 =========================== */
 /* TIM2时钟 = APB1_Timer = 84MHz (APB1=42MHz, Timer x2)              */
@@ -58,9 +60,9 @@ const TimebaseEntry_t g_tb_table[TB_NUM] = {
 /* =========================== V/div参数表 =========================== */
 /* adc_span: 满屏(5div)对应的ADC跨度, 用于Y轴缩放                     */
 const VScaleEntry_t g_vscale_table[VSCALE_NUM] = {
-    { 4095, "2V/div" },     /* 全屏=3.3V (ADC满量程)                    */
-    { 3277, "1V/div" },     /* 全屏=2.64V (约3div余量)                  */
-    { 1638, "500mV"  },     /* 全屏=1.32V (约3div余量)                  */
+    {   62, "10mV"  },     /* 满屏=0.05V (5div×10mV)                  */
+    {  620, "100mV" },     /* 满屏=0.5V  (5div×100mV)                 */
+    { 4095, "1V"    },     /* 满屏=3.3V  (ADC满量程,钳位)             */
 };
 
 uint16_t Osc_GetAdcSpan(void)
@@ -282,8 +284,9 @@ void Osc_DoMeasurements(void)
         m->vpp  = m->vmax - m->vmin;
         m->vavg = (sum / OSC_DISP_WIDTH) * 3.3f / 4096.0f;
 
-        /* 波形有无判断: Vpp > 阈值 */
-        g_osc.wave_present[ch] = ((vmax - vmin) > OSC_WAVE_THRESHOLD) ? 1 : 0;
+        /* 波形有无判断: Vpp > adc_span的10% (约0.6div) */
+        uint16_t threshold = g_vscale_table[g_osc.vdiv].adc_span / 10;
+        g_osc.wave_present[ch] = ((vmax - vmin) > threshold) ? 1 : 0;
     }
 
     /* ---- CH0频率/周期/占空比 (基于adc_buf[0], 线性扫描) ---- */
@@ -446,9 +449,10 @@ void Osc_Init(void)
     g_osc.tb_dirty    = 0;
     g_osc.running     = 0;
     g_osc.fft_sample_rate = 0.0f;
+    g_osc.wave_type       = WAVE_UNKNOWN;
     g_osc.auto_tb         = 1;
     g_osc.last_manual_tb  = TB_100US;
-    g_osc.vdiv            = VSCALE_2V;    /* 默认2V/div */
+    g_osc.vdiv            = VSCALE_1V;    /* 默认1V/div */
     g_osc.coupling_dc[0]  = 1;            /* CH0默认DC耦合 */
     g_osc.coupling_dc[1]  = 1;            /* CH1默认DC耦合 */
     g_osc.custom_psc      = 0;

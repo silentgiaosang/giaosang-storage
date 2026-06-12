@@ -410,13 +410,26 @@ void UI_DrawStatusBar(const Oscilloscope_t *osc)
     }
     else
     {
-        snprintf(line1, sizeof(line1), "%s%c %c%c %s %s",
+        const char *type_str = "";
+        if (osc->disp_mode == DISP_FFT)
+        {
+            switch (osc->wave_type)
+            {
+            case WAVE_SINE:     type_str = " Sin"; break;
+            case WAVE_SQUARE:   type_str = " Sqr"; break;
+            case WAVE_TRIANGLE: type_str = " Tri"; break;
+            case WAVE_SAWTOOTH: type_str = " Saw"; break;
+            default:            type_str = "";     break;
+            }
+        }
+        snprintf(line1, sizeof(line1), "%s%c %c%c %s%s %s",
                  tdiv_str,
                  osc->auto_tb ? 'A' : 'M',
                  (osc->trig_mode == TRIG_AUTO)   ? 'A' :
                  (osc->trig_mode == TRIG_NORMAL) ? 'N' : 'S',
                  (osc->trig_edge == EDGE_RISING) ? 'R' : 'F',
                  (osc->disp_mode == DISP_WAVEFORM) ? "Wav" : "FFT",
+                 type_str,
                  g_vscale_table[osc->vdiv].label);
     }
     /* ---- Line2: CH0 ---- */

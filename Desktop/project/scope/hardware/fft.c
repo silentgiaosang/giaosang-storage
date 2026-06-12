@@ -171,6 +171,62 @@ void FFT_ComputeMagnitude(const float *fft_out, uint32_t fft_size,
 }
 
 /**
+ * @brief 根据谐波幅度比例检测波形类型
+ * @param fft_res     FFT结果(含mag[]数组)
+ * @param sample_rate 当前采样率(Hz)
+ * @param f0          基频(Hz)
+ * @param f0_db       基频幅度(dB)
+ * @return 波形类型
+ */
+WaveType_t FFT_DetectWaveType(const FFTResult_t *fft_res, float sample_rate,
+                              float f0, float f0_db)
+{
+    if (f0 <= 0.0f || sample_rate <= 0.0f) return WAVE_UNKNOWN;
+
+    float bin_hz = sample_rate / (float)FFT_SIZE;
+
+    /* 读各谐波频率对应bin的幅度(不要求是局部极大值, 只看能量) */
+    float h2_db = -200.0f, h3_db = -200.0f;
+    float h4_db = -200.0f, h5_db = -200.0f;
+
+    float targets[4] = { f0 * 2.0f, f0 * 3.0f, f0 * 4.0f, f0 * 5.0f };
+    float *dbs[4]   = { &h2_db, &h3_db, &h4_db, &h5_db };
+
+    for (int k = 0; k < 4; k++)
+    {
+        uint32_t bin = (uint32_t)(targets[k] / bin_hz + 0.5f);
+        if (bin >= 2 && bin < FFT_OUT_BINS)
+        {
+            *dbs[k] = fft_res->mag[bin];
+        }
+    }
+
+    float h2_rel = h2_db - f0_db;   /* 负值=低于基频XdB */
+    float h3_rel = h3_db - f0_db;
+    float h4_rel = h4_db - f0_db;
+    float h5_rel = h5_db - f0_db;
+
+    /* 判定: 无显著谐波 → 正弦 */
+    if (h2_rel < -25.0f && h3_rel < -25.0f && h4_rel < -25.0f)
+        return WAVE_SINE;
+
+    /* 全谐波存在 → 锯齿 */
+    if (h2_rel > -15.0f && h3_rel > -15.0f)
+        return WAVE_SAWTOOTH;
+
+    /* 偶次弱+奇次强 → 方波或三角 */
+    if (h2_rel < -20.0f && h4_rel < -20.0f && h3_rel > -18.0f)
+    {
+        if (h5_rel > -25.0f)
+            return WAVE_SQUARE;    /* 5次仍可检测 → 方波 */
+        else
+            return WAVE_TRIANGLE;  /* 5次太弱 → 三角波 */
+    }
+
+    return WAVE_UNKNOWN;
+}
+
+/**
  * @brief 在FFT幅度谱中找到最强的3个峰值(基频优先)
  * @param fft_res     FFT结果(含mag[]数组)
  * @param sample_rate 当前采样率(Hz)
@@ -257,6 +313,7 @@ void FFT_FindHarmonics(const FFTResult_t *fft_res, float sample_rate,
 
     if (!f0_ok)
     {
+        g_osc.wave_type = WAVE_UNKNOWN;
         /* 无基频则取最强3个峰(不限频率) */
         for (int i = 0; i < FFT_MAX_HARMONICS && i < pk_n; i++)
         {
@@ -268,13 +325,67 @@ void FFT_FindHarmonics(const FFTResult_t *fft_res, float sample_rate,
         return;
     }
 
-    /* ---- 谐波窗口 ±15% 搜索: base, 3rd, 5th ---- */
-    float harm_target[3] = { f0, f0 * 3.0f, f0 * 5.0f };
-    uint8_t used[FFT_MAX_PEAKS] = {0};
-
-    for (int h_idx = 0; h_idx < 3; h_idx++)
+    /* ---- 检测波形类型 ---- */
+    /* f0_db取pk_db中第一个匹配f0的峰的dB */
+    float f0_db_local = -200.0f;
+    for (uint8_t i = 0; i < pk_n; i++)
     {
-        float target    = harm_target[h_idx];
+        float freq = (float)pk_bin[i] * bin_hz;
+        float diff = (freq > f0) ? (freq - f0) : (f0 - freq);
+        if (diff < bin_hz * 1.5f)
+        {
+            f0_db_local = pk_db[i];
+            break;
+        }
+    }
+    WaveType_t wtype = FFT_DetectWaveType(fft_res, sample_rate, f0,
+                                          f0_db_local > -190.0f ? f0_db_local : pk_db[0]);
+    g_osc.wave_type = wtype;
+
+    /* ---- 按波形类型定制谐波搜索目标 ---- */
+    #define HARM_N_MAX 4
+    float   harm_targets[HARM_N_MAX];
+    uint8_t harm_count = 0;
+
+    harm_targets[harm_count++] = f0;  /* 基频始终显示 */
+
+    switch (wtype)
+    {
+    case WAVE_SINE:
+        break;  /* 仅基频 */
+    case WAVE_SQUARE:
+        harm_targets[harm_count++] = f0 * 3.0f;
+        harm_targets[harm_count++] = f0 * 5.0f;
+        break;
+    case WAVE_TRIANGLE:
+        harm_targets[harm_count++] = f0 * 3.0f;
+        break;
+    case WAVE_SAWTOOTH:
+        harm_targets[harm_count++] = f0 * 2.0f;
+        harm_targets[harm_count++] = f0 * 3.0f;
+        break;
+    default: /* WAVE_UNKNOWN — 取最强2个余峰 */
+    {
+        uint8_t added = 0;
+        for (uint8_t i = 0; i < pk_n && added < 2; i++)
+        {
+            float freq = (float)pk_bin[i] * bin_hz;
+            float diff = (freq > f0) ? (freq - f0) : (f0 - freq);
+            if (diff > bin_hz * 2.0f)  /* 不是基频本身 */
+            {
+                harm_targets[harm_count++] = freq;
+                added++;
+            }
+        }
+        break;
+    }
+    }
+
+    /* ---- 谐波窗口 ±15% 搜索 ---- */
+    uint8_t used[FFT_MAX_PEAKS] = {0};
+    for (int h_idx = 0; h_idx < harm_count; h_idx++)
+    {
+        float target    = harm_targets[h_idx];
         float window_lo = target * 0.85f;
         float window_hi = target * 1.15f;
 
@@ -302,6 +413,7 @@ void FFT_FindHarmonics(const FFTResult_t *fft_res, float sample_rate,
         }
         /* 留空: 不强制填充 */
     }
+    #undef HARM_N_MAX
 
     #undef FFT_MAX_PEAKS
 }
@@ -337,6 +449,13 @@ void FFT_FindHarmonics(const FFTResult_t *fft_res, float sample_rate,
                        HarmonicPeak_t *harmonics)
 {
     (void)fft_res; (void)sample_rate; (void)harmonics;
+}
+
+WaveType_t FFT_DetectWaveType(const FFTResult_t *fft_res, float sample_rate,
+                              float f0, float f0_db)
+{
+    (void)fft_res; (void)sample_rate; (void)f0; (void)f0_db;
+    return WAVE_UNKNOWN;
 }
 
 #endif /* ARM_MATH_CM4 */

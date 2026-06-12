@@ -27,6 +27,15 @@ extern "C" {
 #define FFT_CH1             1                 /* 通道1 (ADC奇数索引)     */
 #define FFT_MAX_HARMONICS   3                 /* 最多显示的谐波数        */
 
+/* =========================== 波形类型 =========================== */
+typedef enum {
+    WAVE_SINE = 0,      /* 正弦波: 仅有基频                              */
+    WAVE_SQUARE,        /* 方波: 奇次谐波(3rd,5th)按1/n递减             */
+    WAVE_TRIANGLE,      /* 三角波: 奇次谐波按1/n²快速递减                */
+    WAVE_SAWTOOTH,      /* 锯齿波: 全谐波(2nd,3rd,4th...)按1/n递减      */
+    WAVE_UNKNOWN        /* 未知/复杂波形: 显示最强3峰                    */
+} WaveType_t;
+
 /* =========================== FFT结果结构体 =========================== */
 typedef struct {
     float   mag[FFT_OUT_BINS];   /* 幅度值(dB)                         */
@@ -57,6 +66,8 @@ void FFT_ComputeMagnitude(const float *fft_out, uint32_t fft_size,
                           float *max_mag, uint16_t *peak_bin, float *peak_freq);
 void FFT_FindHarmonics(const FFTResult_t *fft_res, float sample_rate,
                        HarmonicPeak_t *harmonics);
+WaveType_t FFT_DetectWaveType(const FFTResult_t *fft_res, float sample_rate,
+                              float f0, float f0_db);
                                                       /* 计算dB幅度+峰值检测      */
 
 #ifdef __cplusplus
