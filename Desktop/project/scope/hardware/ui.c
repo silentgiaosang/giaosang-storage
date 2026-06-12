@@ -17,6 +17,15 @@
 #define CH0_BOT   134
 #define CH1_BOT   269
 
+/* 判断像素是否在网格虚线上,用于差分擦除时保留网格 */
+static uint8_t _is_on_grid(uint16_t x, uint16_t y, uint16_t ch_top)
+{
+    uint16_t rel_y = y - ch_top;
+    if (x % 24 == 0 && (rel_y % 2 == 0)) return 1;  /* 竖虚线 */
+    if (rel_y % 27 == 0 && (x % 2 == 0)) return 1;  /* 横虚线 */
+    return 0;
+}
+
 /* ---- 每通道差分缓存 ---- */
 static uint16_t s_prev_buf_ch0[OSC_DISP_WIDTH];
 static uint16_t s_prev_buf_ch1[OSC_DISP_WIDTH];
@@ -159,6 +168,7 @@ void UI_DrawWaveform(uint8_t ch, const uint16_t *disp_buf, uint32_t trig_pos,
     }
 
     /* 差分更新波形点 */
+    uint16_t ch_top  = (ch == 0) ? UI_CH0_TOP : UI_CH1_TOP;
     uint16_t prev_y_old = 0xFFFF;
     uint16_t prev_y_new = 0xFFFF;
 
@@ -167,12 +177,31 @@ void UI_DrawWaveform(uint8_t ch, const uint16_t *disp_buf, uint32_t trig_pos,
         uint16_t y_old = _adc_to_y(prev_buf[xi], ch, adc_span);
         uint16_t y_new = _adc_to_y(disp_buf[xi], ch, adc_span);
 
-        /* 擦除旧连线 */
+        /* 擦除旧连线(保留网格点) */
         if (prev_y_old != 0xFFFF && xi > 0)
-            LCD_DrawLine((uint16_t)(xi - 1), prev_y_old, (uint16_t)xi, y_old, UI_BG_COLOR);
+        {
+            uint16_t c0 = _is_on_grid((uint16_t)(xi - 1), prev_y_old, ch_top)
+                          ? UI_GRID_COLOR : UI_BG_COLOR;
+            uint16_t c1 = _is_on_grid((uint16_t)xi, y_old, ch_top)
+                          ? UI_GRID_COLOR : UI_BG_COLOR;
+            if (c0 == c1)
+                LCD_DrawLine((uint16_t)(xi - 1), prev_y_old, (uint16_t)xi, y_old, c0);
+            else
+            {
+                uint16_t mx = (uint16_t)(xi - 1 + xi) / 2;
+                uint16_t my = (uint16_t)(prev_y_old + y_old) / 2;
+                LCD_DrawPoint((uint16_t)(xi - 1), prev_y_old, c0);
+                LCD_DrawPoint(mx, my, UI_BG_COLOR);
+                LCD_DrawPoint((uint16_t)xi, y_old, c1);
+            }
+        }
 
         if (y_old != y_new)
-            LCD_DrawPoint((uint16_t)xi, y_old, UI_BG_COLOR);
+        {
+            uint16_t ec = _is_on_grid((uint16_t)xi, y_old, ch_top)
+                          ? UI_GRID_COLOR : UI_BG_COLOR;
+            LCD_DrawPoint((uint16_t)xi, y_old, ec);
+        }
 
         LCD_DrawPoint((uint16_t)xi, y_new, wave_color);
 
@@ -227,36 +256,53 @@ void UI_DrawFFT(const FFTResult_t *fft_res)
 #define FFT_PLOT_TOP     35
 #define FFT_PLOT_BOT     255
 #define FFT_PLOT_H       (FFT_PLOT_BOT - FFT_PLOT_TOP)
-#define PK_NOISE_MARGIN  30.0f           /* 峰值需在max-30dB以内     */
-#define PK_ABS_MIN       -65.0f          /* 绝对最小dB              */
-#define MAX_PEAKS        6               /* 最多显示6个峰           */
 
-    static uint8_t  s_fft_inited  = 0;
-    static uint16_t s_old_pk_x[MAX_PEAKS];
-    static uint16_t s_old_pk_y[MAX_PEAKS];
-    static uint8_t  s_old_pk_n    = 0;
+    static uint8_t        s_fft_inited = 0;
+    static HarmonicPeak_t s_old_harmonics[FFT_MAX_HARMONICS];
+    static uint8_t        s_old_harm_n = 0;
 
     if (!s_fft_inited)
     {
         LCD_Fill(0, 0, 239, UI_CH1_BOTTOM, UI_BG_COLOR);
         s_fft_inited = 1;
+        for (int i = 0; i < FFT_MAX_HARMONICS; i++)
+            s_old_harmonics[i].valid = 0;
     }
 
-    /* ---- 擦除上帧峰值标记(竖线+标签) ---- */
-    for (uint8_t i = 0; i < s_old_pk_n; i++)
+    /* ---- 擦除上帧谐波标记(竖线+三角+标签) ---- */
+    for (uint8_t i = 0; i < s_old_harm_n; i++)
     {
-        if (s_old_pk_x[i] > 0 && s_old_pk_x[i] < 239)
+        if (!s_old_harmonics[i].valid) continue;
+
+        /* bin → x: bin1→x0, 最大bin239→x239 */
+        uint16_t ox = (uint16_t)(s_old_harmonics[i].bin - 1);
+        if (ox >= 240) ox = 239;
+
+        /* dB → y */
+        float old_ratio = (s_old_harmonics[i].db + 80.0f) / 80.0f;
+        if (old_ratio < 0.0f) old_ratio = 0.0f;
+        if (old_ratio > 1.0f) old_ratio = 1.0f;
+        uint16_t oy = FFT_PLOT_BOT - (uint16_t)(old_ratio * FFT_PLOT_H + 0.5f);
+
+        if (ox == 0 || ox >= 239) continue;
+
+        /* 擦除竖线（从峰顶到基线）*/
+        LCD_DrawLine(ox, oy, ox, FFT_PLOT_BOT, UI_BG_COLOR);
+
+        /* 擦除三角箭头 */
+        if (ox >= 3 && ox <= 235 && oy > FFT_PLOT_TOP + 5)
         {
-            LCD_DrawLine(s_old_pk_x[i], FFT_PLOT_TOP,
-                         s_old_pk_x[i], FFT_PLOT_BOT, UI_BG_COLOR);
-            /* 擦除标签区域(≈50×14像素) */
-            uint16_t lx = (s_old_pk_x[i] > 200) ? (s_old_pk_x[i] - 50) : (s_old_pk_x[i] + 5);
-            uint16_t ly = (s_old_pk_y[i] > FFT_PLOT_TOP + 14) ? (s_old_pk_y[i] - 12) : FFT_PLOT_TOP;
-            LCD_Fill(lx, ly,
-                     (lx + 50 < 239) ? (lx + 50) : 239,
-                     (ly + 14 < FFT_PLOT_BOT) ? (ly + 14) : FFT_PLOT_BOT,
-                     UI_BG_COLOR);
+            LCD_DrawLine(ox, oy, ox - 3, oy + 5, UI_BG_COLOR);
+            LCD_DrawLine(ox, oy, ox + 3, oy + 5, UI_BG_COLOR);
         }
+
+        /* 擦除标签区域 */
+        uint16_t olx = (ox > 200) ? (ox - 52) : (ox + 6);
+        uint16_t oly = (oy > FFT_PLOT_TOP + 12) ? (oy - 10) : FFT_PLOT_TOP;
+        LCD_Fill(olx, oly,
+                 (olx + 52 < 239) ? (olx + 52) : 239,
+                 (oly + 14 < FFT_PLOT_BOT) ? (oly + 14) : FFT_PLOT_BOT,
+                 UI_BG_COLOR);
     }
 
     /* ---- 水平dB参考线 ---- */
@@ -267,67 +313,38 @@ void UI_DrawFFT(const FFTResult_t *fft_res)
             LCD_DrawPoint(xp, gy, UI_GRID_COLOR);
     }
 
-    /* ---- 计算噪声门限 ---- */
-    float noise_floor = fft_res->max_mag - PK_NOISE_MARGIN;
-    if (noise_floor < PK_ABS_MIN) noise_floor = PK_ABS_MIN;
+    /* ---- 查找谐波峰值(基频+3次+5次) ---- */
+    HarmonicPeak_t harmonics[FFT_MAX_HARMONICS];
+    FFT_FindHarmonics(fft_res, g_osc.fft_sample_rate, harmonics);
 
-    /* ---- 峰值检测(局部极大值 + 高于门限) ---- */
-    uint16_t pk_x[MAX_PEAKS];
-    float    pk_db[MAX_PEAKS];
-    float    pk_freq[MAX_PEAKS];
-    uint8_t  pk_n = 0;
-
-    /* 从bin 2开始(跳过DC和超低频), 到FFT_OUT_BINS-1结束 */
-    for (uint32_t bin = 3; bin < FFT_OUT_BINS - 1 && pk_n < MAX_PEAKS; bin++)
+    /* ---- 绘制谐波峰值 ---- */
+    for (uint8_t i = 0; i < FFT_MAX_HARMONICS; i++)
     {
-        float db = fft_res->mag[bin];
-        if (db < noise_floor) continue;
-        /* 局部极大值 */
-        if (db < fft_res->mag[bin - 1]) continue;
-        if (db < fft_res->mag[bin + 1]) continue;
+        if (!harmonics[i].valid) continue;
 
-        /* 按幅度降序插入 */
-        int8_t pos = pk_n;
-        while (pos > 0 && pk_db[pos - 1] < db) pos--;
+        /* bin → x: bin1→x0, bin239→x239 */
+        uint16_t px = (uint16_t)(harmonics[i].bin - 1);
+        if (px >= 240) px = 239;
 
-        for (int8_t j = pk_n; j > pos; j--)
-        {
-            pk_x[j]    = pk_x[j - 1];
-            pk_db[j]   = pk_db[j - 1];
-            pk_freq[j] = pk_freq[j - 1];
-        }
-
-        pk_db[pos] = db;
-        pk_x[pos]  = (uint16_t)((bin < 241) ? (bin - 1) : 239);
-        /* 频率: bin * sample_rate / FFT_SIZE = bin * (peak_freq / peak_bin) */
-        if (fft_res->peak_bin > 0)
-            pk_freq[pos] = (float)bin * fft_res->peak_freq / (float)fft_res->peak_bin;
-        else
-            pk_freq[pos] = 0.0f;
-
-        if (pk_n < MAX_PEAKS) pk_n++;
-    }
-
-    /* ---- 绘制峰值 ---- */
-    for (uint8_t i = 0; i < pk_n; i++)
-    {
-        float ratio = (pk_db[i] + 80.0f) / 80.0f;
+        /* dB → y */
+        float ratio = (harmonics[i].db + 80.0f) / 80.0f;
+        if (ratio < 0.0f) ratio = 0.0f;
         if (ratio > 1.0f) ratio = 1.0f;
-        uint16_t py = FFT_PLOT_BOT - (uint16_t)(ratio * FFT_PLOT_H);
+        uint16_t py = FFT_PLOT_BOT - (uint16_t)(ratio * FFT_PLOT_H + 0.5f);
 
-        /* 竖线 */
-        LCD_DrawLine(pk_x[i], FFT_PLOT_TOP, pk_x[i], FFT_PLOT_BOT, UI_FFT_PEAK_COLOR);
+        /* 竖线：从峰顶到基线（dB决定高度）*/
+        LCD_DrawLine(px, py, px, FFT_PLOT_BOT, UI_FFT_PEAK_COLOR);
 
         /* 峰顶三角标记 */
-        if (pk_x[i] >= 3 && pk_x[i] <= 235 && py > FFT_PLOT_TOP + 5)
+        if (px >= 3 && px <= 235 && py > FFT_PLOT_TOP + 5)
         {
-            LCD_DrawLine(pk_x[i], py, pk_x[i] - 3, py + 5, UI_FFT_PEAK_COLOR);
-            LCD_DrawLine(pk_x[i], py, pk_x[i] + 3, py + 5, UI_FFT_PEAK_COLOR);
+            LCD_DrawLine(px, py, px - 3, py + 5, UI_FFT_PEAK_COLOR);
+            LCD_DrawLine(px, py, px + 3, py + 5, UI_FFT_PEAK_COLOR);
         }
 
         /* 频率标签 */
         char buf[14];
-        float f = pk_freq[i];
+        float f = harmonics[i].freq;
         if (f >= 1000.0f)
             snprintf(buf, sizeof(buf), "%.1fkHz", f / 1000.0f);
         else if (f > 0.0f)
@@ -337,21 +354,26 @@ void UI_DrawFFT(const FFTResult_t *fft_res)
 
         if (buf[0])
         {
-            uint16_t lx = (pk_x[i] > 200) ? (pk_x[i] - 50) : (pk_x[i] + 5);
-            uint16_t ly = (py > FFT_PLOT_TOP + 14) ? (py - 12) : FFT_PLOT_TOP;
+            uint16_t lx = (px > 200) ? (px - 52) : (px + 6);
+            uint16_t ly = (py > FFT_PLOT_TOP + 12) ? (py - 10) : FFT_PLOT_TOP;
             LCD_ShowString(lx, ly, buf, UI_FFT_PEAK_COLOR, UI_BG_COLOR);
         }
     }
 
-    /* 保存本帧峰值位置供下帧擦除 */
-    memcpy(s_old_pk_x, pk_x, pk_n * sizeof(uint16_t));
-    for (uint8_t i = 0; i < pk_n; i++)
+    /* 保存本帧谐波供下帧擦除 */
+    s_old_harm_n = 0;
+    for (uint8_t i = 0; i < FFT_MAX_HARMONICS; i++)
     {
-        float ratio = (pk_db[i] + 80.0f) / 80.0f;
-        if (ratio > 1.0f) ratio = 1.0f;
-        s_old_pk_y[i] = FFT_PLOT_BOT - (uint16_t)(ratio * FFT_PLOT_H);
+        if (harmonics[i].valid)
+        {
+            s_old_harmonics[i] = harmonics[i];
+            s_old_harm_n++;
+        }
+        else
+        {
+            s_old_harmonics[i].valid = 0;
+        }
     }
-    s_old_pk_n = pk_n;
 
     /* ---- 基线 ---- */
     for (uint16_t xp = 0; xp < 240; xp += 4)
@@ -377,6 +399,25 @@ void UI_DrawStatusBar(const Oscilloscope_t *osc)
         LCD_Fill(0, UI_STATUSBAR_TOP, 239, UI_STATUSBAR_BOTTOM, UI_BG_COLOR);
         LCD_DrawLine(0, UI_STATUSBAR_TOP, 239, UI_STATUSBAR_TOP, UI_GRID_COLOR);
         s_sb_inited = 1;
+    }
+
+    /* ---- 自校正状态覆盖整个信息栏 ---- */
+    if (g_calib_state > 0)
+    {
+        if (g_calib_state == 1)
+        {
+            LCD_Fill(0, UI_STATUSBAR_TOP + 2, 239, UI_STATUSBAR_BOTTOM, UI_BG_COLOR);
+            LCD_ShowString(0, UI_STATUSBAR_TOP + 10, "  Calibrating...",
+                           UI_TEXT_COLOR, UI_BG_COLOR);
+        }
+        else
+        {
+            LCD_Fill(0, UI_STATUSBAR_TOP + 2, 239, UI_STATUSBAR_BOTTOM, UI_BG_COLOR);
+            LCD_ShowString(0, UI_STATUSBAR_TOP + 10, "  Calibration Done",
+                           UI_TEXT_COLOR, UI_BG_COLOR);
+        }
+        s_sb_inited = 1;
+        return;
     }
 
     /* ---- Line1: 时基+模式+V/div ---- */

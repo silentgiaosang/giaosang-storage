@@ -25,6 +25,7 @@ extern "C" {
 #define FFT_EMA_ALPHA       0.25f             /* 幅度EMA平滑系数(0-1)   */
 #define FFT_CH0             0                 /* 通道0 (ADC偶数索引)     */
 #define FFT_CH1             1                 /* 通道1 (ADC奇数索引)     */
+#define FFT_MAX_HARMONICS   3                 /* 最多显示的谐波数        */
 
 /* =========================== FFT结果结构体 =========================== */
 typedef struct {
@@ -33,6 +34,14 @@ typedef struct {
     uint16_t peak_bin;           /* 峰值所在bin                         */
     float   peak_freq;           /* 峰值频率(Hz)                        */
 } FFTResult_t;
+
+/* =========================== 谐波峰值 =========================== */
+typedef struct {
+    float   freq;       /* 频率(Hz)                                      */
+    float   db;         /* 幅度(dB)                                      */
+    uint16_t bin;       /* FFT bin索引                                   */
+    uint8_t  valid;     /* 1=有效谐波                                     */
+} HarmonicPeak_t;
 
 /* =========================== 全局实例 =========================== */
 extern FFTResult_t g_fft_result;
@@ -46,6 +55,8 @@ void FFT_ApplyWindow(float *buf, uint32_t len);       /* 加Hanning窗          
 void FFT_ComputeMagnitude(const float *fft_out, uint32_t fft_size,
                           float *mag, float sample_rate,
                           float *max_mag, uint16_t *peak_bin, float *peak_freq);
+void FFT_FindHarmonics(const FFTResult_t *fft_res, float sample_rate,
+                       HarmonicPeak_t *harmonics);
                                                       /* 计算dB幅度+峰值检测      */
 
 #ifdef __cplusplus
