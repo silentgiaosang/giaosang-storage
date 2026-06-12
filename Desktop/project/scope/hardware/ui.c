@@ -232,52 +232,71 @@ void UI_DrawFFT(const FFTResult_t *fft_res)
 #define FFT_PLOT_H       (FFT_PLOT_BOT - FFT_PLOT_TOP)
 #define FFT_DB_RANGE     50.0f   /* 可见动态范围: max_mag往下50dB */
 
-    static HarmonicPeak_t s_old_harmonics[FFT_MAX_HARMONICS];
+    /* 缓存旧标记的屏幕坐标(用于精确擦除) */
+    static struct {
+        uint16_t x, y;     /* 峰顶屏幕坐标               */
+        uint16_t lx, ly;   /* 标签左上角                  */
+        uint8_t  valid;
+        char     label[14];
+    } s_old_mark[FFT_MAX_HARMONICS];
 
     if (!s_fft_area_inited)
     {
         LCD_Fill(0, 0, 239, UI_CH1_BOTTOM, UI_BG_COLOR);
         s_fft_area_inited = 1;
         for (int i = 0; i < FFT_MAX_HARMONICS; i++)
-            s_old_harmonics[i].valid = 0;
+            s_old_mark[i].valid = 0;
     }
 
     /* ---- 查找谐波峰值(基频+3次+5次) ---- */
     HarmonicPeak_t harmonics[FFT_MAX_HARMONICS];
     FFT_FindHarmonics(fft_res, g_osc.fft_sample_rate, harmonics);
 
-    /* ---- 变更检测: 仅刷新位置变了的谐波标记(消除闪烁) ---- */
+    /* ---- 变更检测: 屏幕坐标差≤1跳过(消除闪烁) ---- */
     for (uint8_t i = 0; i < FFT_MAX_HARMONICS; i++)
     {
-        uint8_t  new_valid = harmonics[i].valid;
-        uint8_t  old_valid = s_old_harmonics[i].valid;
-        uint16_t nbin = new_valid ? harmonics[i].bin       : 0;
-        uint16_t obin = old_valid ? s_old_harmonics[i].bin : 0;
-        float    ndb  = new_valid ? harmonics[i].db        : 0.0f;
-        float    odb  = old_valid ? s_old_harmonics[i].db  : 0.0f;
+        uint16_t nx = 0, ny = 0;
+        uint16_t nlx = 0, nly = 0;
+        char nlabel[14] = "";
 
-        /* 判断是否需要更新: bin差≤1 且 dB差≤3 则跳过 */
-        uint8_t same = 0;
-        if (new_valid && old_valid)
+        /* 计算新标记的屏幕坐标 */
+        if (harmonics[i].valid)
         {
-            int16_t dx = (int16_t)nbin - (int16_t)obin;
-            if (dx < 0) dx = -dx;
-            float ddb = (ndb > odb) ? (ndb - odb) : (odb - ndb);
-            if (dx <= 1 && ddb <= 3.0f)
-                same = 1;
+            nx = (uint16_t)(harmonics[i].bin - 1);
+            if (nx >= 240) nx = 239;
+            float ratio = 1.0f - ((fft_res->max_mag - harmonics[i].db) / FFT_DB_RANGE);
+            if (ratio < 0.0f) ratio = 0.0f;
+            if (ratio > 1.0f) ratio = 1.0f;
+            ny = FFT_PLOT_BOT - (uint16_t)(ratio * FFT_PLOT_H + 0.5f);
+            nlx = (nx > 200) ? (nx - 52) : (nx + 6);
+            nly = (ny > FFT_PLOT_TOP + 12) ? (ny - 10) : FFT_PLOT_TOP;
+
+            float f = harmonics[i].freq;
+            if (f >= 1000.0f)
+                snprintf(nlabel, sizeof(nlabel), "%.1fkHz", f / 1000.0f);
+            else if (f > 0.0f)
+                snprintf(nlabel, sizeof(nlabel), "%.0fHz", f);
         }
-        if (same) continue;
 
-        /* --- 位置变了: 先擦旧 --- */
-        if (old_valid)
+        /* 坐标未变则跳过 */
+        if (harmonics[i].valid && s_old_mark[i].valid)
         {
-            uint16_t ox = (uint16_t)(obin - 1);
-            if (ox >= 240) ox = 239;
-            float old_ratio = 1.0f - ((fft_res->max_mag - odb) / FFT_DB_RANGE);
-            if (old_ratio < 0.0f) old_ratio = 0.0f;
-            if (old_ratio > 1.0f) old_ratio = 1.0f;
-            uint16_t oy = FFT_PLOT_BOT - (uint16_t)(old_ratio * FFT_PLOT_H + 0.5f);
+            int16_t dx = (int16_t)nx - (int16_t)s_old_mark[i].x;
+            int16_t dy = (int16_t)ny - (int16_t)s_old_mark[i].y;
+            if (dx < 0) dx = -dx;
+            if (dy < 0) dy = -dy;
+            if (dx <= 1 && dy <= 2 && strcmp(nlabel, s_old_mark[i].label) == 0)
+            {
+                s_old_mark[i].x = nx; s_old_mark[i].y = ny;
+                s_old_mark[i].lx = nlx; s_old_mark[i].ly = nly;
+                continue;
+            }
+        }
 
+        /* --- 擦除旧标记(用缓存的屏幕坐标, 精确命中) --- */
+        if (s_old_mark[i].valid)
+        {
+            uint16_t ox = s_old_mark[i].x, oy = s_old_mark[i].y;
             if (ox > 0 && ox < 239)
             {
                 LCD_DrawLine(ox, oy, ox, FFT_PLOT_BOT, UI_BG_COLOR);
@@ -286,54 +305,33 @@ void UI_DrawFFT(const FFTResult_t *fft_res)
                     LCD_DrawLine(ox, oy, ox - 3, oy + 5, UI_BG_COLOR);
                     LCD_DrawLine(ox, oy, ox + 3, oy + 5, UI_BG_COLOR);
                 }
-                uint16_t olx = (ox > 200) ? (ox - 52) : (ox + 6);
-                uint16_t oly = (oy > FFT_PLOT_TOP + 12) ? (oy - 10) : FFT_PLOT_TOP;
-                LCD_Fill(olx, oly,
-                         (olx + 52 < 239) ? (olx + 52) : 239,
-                         (oly + 14 < FFT_PLOT_BOT) ? (oly + 14) : FFT_PLOT_BOT,
+                LCD_Fill(s_old_mark[i].lx, s_old_mark[i].ly,
+                         (s_old_mark[i].lx + 52 < 239) ? (s_old_mark[i].lx + 52) : 239,
+                         (s_old_mark[i].ly + 14 < FFT_PLOT_BOT) ? (s_old_mark[i].ly + 14) : FFT_PLOT_BOT,
                          UI_BG_COLOR);
             }
         }
 
-        /* --- 再画新 --- */
-        if (new_valid)
+        /* --- 绘制新标记 --- */
+        if (harmonics[i].valid)
         {
-            uint16_t px = (uint16_t)(nbin - 1);
-            if (px >= 240) px = 239;
-            float ratio = 1.0f - ((fft_res->max_mag - ndb) / FFT_DB_RANGE);
-            if (ratio < 0.0f) ratio = 0.0f;
-            if (ratio > 1.0f) ratio = 1.0f;
-            uint16_t py = FFT_PLOT_BOT - (uint16_t)(ratio * FFT_PLOT_H + 0.5f);
-
-            LCD_DrawLine(px, py, px, FFT_PLOT_BOT, UI_FFT_PEAK_COLOR);
-
-            if (px >= 3 && px <= 235 && py > FFT_PLOT_TOP + 5)
+            LCD_DrawLine(nx, ny, nx, FFT_PLOT_BOT, UI_FFT_PEAK_COLOR);
+            if (nx >= 3 && nx <= 235 && ny > FFT_PLOT_TOP + 5)
             {
-                LCD_DrawLine(px, py, px - 3, py + 5, UI_FFT_PEAK_COLOR);
-                LCD_DrawLine(px, py, px + 3, py + 5, UI_FFT_PEAK_COLOR);
+                LCD_DrawLine(nx, ny, nx - 3, ny + 5, UI_FFT_PEAK_COLOR);
+                LCD_DrawLine(nx, ny, nx + 3, ny + 5, UI_FFT_PEAK_COLOR);
             }
-
-            char buf[14];
-            float f = harmonics[i].freq;
-            if (f >= 1000.0f)
-                snprintf(buf, sizeof(buf), "%.1fkHz", f / 1000.0f);
-            else if (f > 0.0f)
-                snprintf(buf, sizeof(buf), "%.0fHz", f);
-            else
-                buf[0] = '\0';
-
-            if (buf[0])
-            {
-                uint16_t lx = (px > 200) ? (px - 52) : (px + 6);
-                uint16_t ly = (py > FFT_PLOT_TOP + 12) ? (py - 10) : FFT_PLOT_TOP;
-                LCD_ShowString(lx, ly, buf, UI_FFT_PEAK_COLOR, UI_BG_COLOR);
-            }
+            if (nlabel[0])
+                LCD_ShowString(nlx, nly, nlabel, UI_FFT_PEAK_COLOR, UI_BG_COLOR);
         }
-    }
 
-    /* 保存本帧谐波供下帧比较 */
-    for (uint8_t i = 0; i < FFT_MAX_HARMONICS; i++)
-        s_old_harmonics[i] = harmonics[i];
+        /* 缓存本帧坐标 */
+        s_old_mark[i].x = nx; s_old_mark[i].y = ny;
+        s_old_mark[i].lx = nlx; s_old_mark[i].ly = nly;
+        s_old_mark[i].valid = harmonics[i].valid;
+        if (nlabel[0]) strcpy(s_old_mark[i].label, nlabel);
+        else s_old_mark[i].label[0] = '\0';
+    }
 
     /* ---- 基线 ---- */
     for (uint16_t xp = 0; xp < 240; xp += 4)
@@ -396,13 +394,18 @@ void UI_DrawStatusBar(const Oscilloscope_t *osc)
     }
     else
     {
+        char mode_str[8];
+        if (osc->disp_mode == DISP_WAVEFORM)
+            snprintf(mode_str, sizeof(mode_str), "Wav");
+        else
+            snprintf(mode_str, sizeof(mode_str), "F%d", osc->fft_channel);
         snprintf(line1, sizeof(line1), "%s%c %c%c %s %s",
                  tdiv_str,
                  osc->auto_tb ? 'A' : 'M',
                  (osc->trig_mode == TRIG_AUTO)   ? 'A' :
                  (osc->trig_mode == TRIG_NORMAL) ? 'N' : 'S',
                  (osc->trig_edge == EDGE_RISING) ? 'R' : 'F',
-                 (osc->disp_mode == DISP_WAVEFORM) ? "Wav" : "FFT",
+                 mode_str,
                  g_vscale_table[osc->vdiv].label);
     }
     /* ---- 波形类型标签(FFT模式下显示在Line2末尾) ---- */

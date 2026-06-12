@@ -257,10 +257,19 @@ static void IO_Process(void)
         UI_ClearWaveAreas(); UI_ResetCache();
         if (g_osc.disp_mode == DISP_WAVEFORM) UI_DrawGrids();
       }
-      else if (i == 4)  /* K5(PD10): 触发调节模式 */
+      else if (i == 4)  /* K5(PD10): 触发调节 / FFT通道切换 */
       {
-        g_trig_adj_mode = !g_trig_adj_mode;
-        UI_ResetStatusBar();
+        if (g_osc.disp_mode == DISP_FFT)
+        {
+            g_osc.fft_channel = !g_osc.fft_channel;
+            UI_ClearWaveAreas();
+            UI_ResetStatusBar();
+        }
+        else
+        {
+            g_trig_adj_mode = !g_trig_adj_mode;
+            UI_ResetStatusBar();
+        }
       }
       else if (i == 5)  /* K6(PD8): 自校正 */
       {

@@ -141,6 +141,7 @@ typedef struct {
     float   fft_out[FFT_SIZE];                 /* FFT输出缓冲              */
     float   fft_sample_rate;                   /* FFT当前采样率(Hz)        */
     WaveType_t  wave_type;                     /* 波形类型(FFT检测结果)    */
+    uint8_t     fft_channel;                   /* FFT数据通道(0=CH0,1=CH1) */
 
     /* ---- 运行 ---- */
     uint8_t running;                          /* 1=ADC+DMA正在运行     */

@@ -450,6 +450,7 @@ void Osc_Init(void)
     g_osc.running     = 0;
     g_osc.fft_sample_rate = 0.0f;
     g_osc.wave_type       = WAVE_UNKNOWN;
+    g_osc.fft_channel     = 0;  /* FFT默认CH0 */
     g_osc.auto_tb         = 1;
     g_osc.last_manual_tb  = TB_100US;
     g_osc.vdiv            = VSCALE_1V;    /* 默认1V/div */

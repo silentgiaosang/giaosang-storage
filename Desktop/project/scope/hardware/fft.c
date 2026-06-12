@@ -15,7 +15,6 @@ FFTResult_t g_fft_result;
 
 /* =========================== 通道选择 & EMA平滑 =================== */
 #ifdef ARM_MATH_CM4
-static uint8_t  g_fft_channel = FFT_CH1;          /* 默认通道2(CH1)   */
 static float    g_fft_ema_mag[FFT_OUT_BINS];       /* EMA平滑缓存      */
 static uint8_t  g_fft_ema_inited = 0;
 #endif
@@ -25,8 +24,8 @@ void FFT_SetChannel(uint8_t ch)
 #ifdef ARM_MATH_CM4
     if (ch <= 1)
     {
-        g_fft_channel = ch;
-        g_fft_ema_inited = 0;  /* 切换通道时重置EMA */
+        g_osc.fft_channel = ch;
+        g_fft_ema_inited  = 0;  /* 切换通道时重置EMA */
     }
 #else
     (void)ch;
@@ -83,7 +82,7 @@ void FFT_Process(const uint16_t *adc_buf, uint32_t buf_len,
     for (uint32_t i = 0; i < FFT_SIZE; i++)
     {
         uint32_t idx = (start + i) % buf_len;
-        uint16_t raw = buf[g_fft_channel][idx];
+        uint16_t raw = buf[g_osc.fft_channel][idx];
         fft_input[i] = (float)raw - 2048.0f;
     }
 
