@@ -195,7 +195,7 @@ void FFT_FindHarmonics(const FFTResult_t *fft_res, float sample_rate,
     uint16_t pk_bin[FFT_MAX_PEAKS];
     uint8_t  pk_n = 0;
 
-    for (uint32_t i = 3; i < FFT_OUT_BINS - 1 && pk_n < FFT_MAX_PEAKS; i++)
+    for (uint32_t i = 2; i < FFT_OUT_BINS - 1 && pk_n < FFT_MAX_PEAKS; i++)
     {
         float db = fft_res->mag[i];
         if (db < -65.0f) continue;                     /* 低于绝对最小dB */

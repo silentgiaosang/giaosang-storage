@@ -17,15 +17,6 @@
 #define CH0_BOT   134
 #define CH1_BOT   269
 
-/* 判断像素是否在网格虚线上,用于差分擦除时保留网格 */
-static uint8_t _is_on_grid(uint16_t x, uint16_t y, uint16_t ch_top)
-{
-    uint16_t rel_y = y - ch_top;
-    if (x % 24 == 0 && (rel_y % 2 == 0)) return 1;  /* 竖虚线 */
-    if (rel_y % 27 == 0 && (x % 2 == 0)) return 1;  /* 横虚线 */
-    return 0;
-}
-
 /* ---- 每通道差分缓存 ---- */
 static uint16_t s_prev_buf_ch0[OSC_DISP_WIDTH];
 static uint16_t s_prev_buf_ch1[OSC_DISP_WIDTH];
@@ -168,7 +159,6 @@ void UI_DrawWaveform(uint8_t ch, const uint16_t *disp_buf, uint32_t trig_pos,
     }
 
     /* 差分更新波形点 */
-    uint16_t ch_top  = (ch == 0) ? UI_CH0_TOP : UI_CH1_TOP;
     uint16_t prev_y_old = 0xFFFF;
     uint16_t prev_y_new = 0xFFFF;
 
@@ -177,31 +167,12 @@ void UI_DrawWaveform(uint8_t ch, const uint16_t *disp_buf, uint32_t trig_pos,
         uint16_t y_old = _adc_to_y(prev_buf[xi], ch, adc_span);
         uint16_t y_new = _adc_to_y(disp_buf[xi], ch, adc_span);
 
-        /* 擦除旧连线(保留网格点) */
+        /* 擦除旧连线 */
         if (prev_y_old != 0xFFFF && xi > 0)
-        {
-            uint16_t c0 = _is_on_grid((uint16_t)(xi - 1), prev_y_old, ch_top)
-                          ? UI_GRID_COLOR : UI_BG_COLOR;
-            uint16_t c1 = _is_on_grid((uint16_t)xi, y_old, ch_top)
-                          ? UI_GRID_COLOR : UI_BG_COLOR;
-            if (c0 == c1)
-                LCD_DrawLine((uint16_t)(xi - 1), prev_y_old, (uint16_t)xi, y_old, c0);
-            else
-            {
-                uint16_t mx = (uint16_t)(xi - 1 + xi) / 2;
-                uint16_t my = (uint16_t)(prev_y_old + y_old) / 2;
-                LCD_DrawPoint((uint16_t)(xi - 1), prev_y_old, c0);
-                LCD_DrawPoint(mx, my, UI_BG_COLOR);
-                LCD_DrawPoint((uint16_t)xi, y_old, c1);
-            }
-        }
+            LCD_DrawLine((uint16_t)(xi - 1), prev_y_old, (uint16_t)xi, y_old, UI_BG_COLOR);
 
         if (y_old != y_new)
-        {
-            uint16_t ec = _is_on_grid((uint16_t)xi, y_old, ch_top)
-                          ? UI_GRID_COLOR : UI_BG_COLOR;
-            LCD_DrawPoint((uint16_t)xi, y_old, ec);
-        }
+            LCD_DrawPoint((uint16_t)xi, y_old, UI_BG_COLOR);
 
         LCD_DrawPoint((uint16_t)xi, y_new, wave_color);
 
