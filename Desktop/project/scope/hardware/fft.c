@@ -183,6 +183,18 @@ void FFT_FindHarmonics(const FFTResult_t *fft_res, float sample_rate,
 {
     float bin_hz = sample_rate / (float)FFT_SIZE;
 
+    /* 滞回: 防止基频帧间微跳 */
+    static float  s_last_f0    = 0.0f;
+    static float  s_last_rate  = 0.0f;
+    static uint8_t s_f0_locked = 0;
+
+    if (sample_rate != s_last_rate)
+    {
+        s_last_rate  = sample_rate;
+        s_last_f0    = 0.0f;
+        s_f0_locked  = 0;
+    }
+
     for (int i = 0; i < FFT_MAX_HARMONICS; i++)
         harmonics[i].valid = 0;
 
@@ -228,6 +240,19 @@ void FFT_FindHarmonics(const FFTResult_t *fft_res, float sample_rate,
             f0_ok = 1;
             break;  /* pk_n已按幅度降序, 第一个符合条件的即最强 */
         }
+    }
+
+    if (f0_ok)
+    {
+        /* 滞回: 新f0与上一帧偏差<1.5bin时沿用旧值, 防止闪烁 */
+        if (s_f0_locked && s_last_f0 > 0.0f)
+        {
+            float diff = (f0 > s_last_f0) ? (f0 - s_last_f0) : (s_last_f0 - f0);
+            if (diff < bin_hz * 1.5f)
+                f0 = s_last_f0;
+        }
+        s_last_f0   = f0;
+        s_f0_locked = 1;
     }
 
     if (!f0_ok)

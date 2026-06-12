@@ -227,6 +227,7 @@ void UI_DrawFFT(const FFTResult_t *fft_res)
 #define FFT_PLOT_TOP     35
 #define FFT_PLOT_BOT     255
 #define FFT_PLOT_H       (FFT_PLOT_BOT - FFT_PLOT_TOP)
+#define FFT_DB_RANGE     50.0f   /* 可见动态范围: max_mag往下50dB */
 
     static uint8_t        s_fft_inited = 0;
     static HarmonicPeak_t s_old_harmonics[FFT_MAX_HARMONICS];
@@ -249,8 +250,9 @@ void UI_DrawFFT(const FFTResult_t *fft_res)
         uint16_t ox = (uint16_t)(s_old_harmonics[i].bin - 1);
         if (ox >= 240) ox = 239;
 
-        /* dB → y */
-        float old_ratio = (s_old_harmonics[i].db + 80.0f) / 80.0f;
+        /* dB → y: 以max_mag为顶, 向下50dB到底 */
+        float old_db_diff = fft_res->max_mag - s_old_harmonics[i].db;
+        float old_ratio   = 1.0f - (old_db_diff / FFT_DB_RANGE);
         if (old_ratio < 0.0f) old_ratio = 0.0f;
         if (old_ratio > 1.0f) old_ratio = 1.0f;
         uint16_t oy = FFT_PLOT_BOT - (uint16_t)(old_ratio * FFT_PLOT_H + 0.5f);
@@ -297,8 +299,9 @@ void UI_DrawFFT(const FFTResult_t *fft_res)
         uint16_t px = (uint16_t)(harmonics[i].bin - 1);
         if (px >= 240) px = 239;
 
-        /* dB → y */
-        float ratio = (harmonics[i].db + 80.0f) / 80.0f;
+        /* dB → y: 以max_mag为顶, 向下50dB到底 */
+        float db_diff = fft_res->max_mag - harmonics[i].db;
+        float ratio   = 1.0f - (db_diff / FFT_DB_RANGE);
         if (ratio < 0.0f) ratio = 0.0f;
         if (ratio > 1.0f) ratio = 1.0f;
         uint16_t py = FFT_PLOT_BOT - (uint16_t)(ratio * FFT_PLOT_H + 0.5f);
