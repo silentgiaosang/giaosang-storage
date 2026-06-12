@@ -210,6 +210,19 @@ static void IO_Process(void)
   {
     g_enc_ui_dirty = 0;
     UI_ClearWaveAreas();
+    if (g_osc.disp_mode == DISP_WAVEFORM) UI_DrawGrids();
+    UI_ResetStatusBar();
+  }
+
+  /* ---- 自校正定时: 校正中→校正完成(2s) →恢复(3.5s) ---- */
+  if (g_calib_state == 1 && now - g_calib_start_ms >= 2000)
+  {
+    g_calib_state = 2;
+    UI_ResetStatusBar();
+  }
+  if (g_calib_state == 2 && now - g_calib_start_ms >= 3500)
+  {
+    g_calib_state = 0;
     UI_ResetStatusBar();
   }
 
@@ -249,7 +262,12 @@ static void IO_Process(void)
         g_trig_adj_mode = !g_trig_adj_mode;
         UI_ResetStatusBar();
       }
-      /* K6(PD8): 预留 */
+      else if (i == 5)  /* K6(PD8): 自校正 */
+      {
+        g_calib_state    = 1;
+        g_calib_start_ms = HAL_GetTick();
+        UI_ResetStatusBar();
+      }
     }
     btn_last[i] = bn[i];
   }

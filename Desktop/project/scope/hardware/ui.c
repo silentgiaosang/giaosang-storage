@@ -33,6 +33,9 @@ static char s_last_line2[32] = "";
 static char s_last_line3[32] = "";
 static uint8_t s_sb_inited   = 0;
 
+/* ---- FFT区域初始标志(可被ClearWaveAreas复位) ---- */
+static uint8_t s_fft_area_inited = 0;
+
 static inline uint16_t _min(uint16_t a, uint16_t b) { return a < b ? a : b; }
 static inline uint16_t _clamp(int32_t v, uint16_t lo, uint16_t hi) {
     if (v < (int32_t)lo) return lo;
@@ -229,14 +232,13 @@ void UI_DrawFFT(const FFTResult_t *fft_res)
 #define FFT_PLOT_H       (FFT_PLOT_BOT - FFT_PLOT_TOP)
 #define FFT_DB_RANGE     50.0f   /* 可见动态范围: max_mag往下50dB */
 
-    static uint8_t        s_fft_inited = 0;
     static HarmonicPeak_t s_old_harmonics[FFT_MAX_HARMONICS];
     static uint8_t        s_old_harm_n = 0;
 
-    if (!s_fft_inited)
+    if (!s_fft_area_inited)
     {
         LCD_Fill(0, 0, 239, UI_CH1_BOTTOM, UI_BG_COLOR);
-        s_fft_inited = 1;
+        s_fft_area_inited = 1;
         for (int i = 0; i < FFT_MAX_HARMONICS; i++)
             s_old_harmonics[i].valid = 0;
     }
@@ -513,6 +515,7 @@ void UI_ClearWaveAreas(void)
 {
     s_first_draw_ch0 = 1;
     s_first_draw_ch1 = 1;
+    s_fft_area_inited = 0;
     LCD_Fill(0, UI_CH0_TOP, 239, UI_CH1_BOTTOM, UI_BG_COLOR);
 }
 
