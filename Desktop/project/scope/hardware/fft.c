@@ -171,38 +171,36 @@ void FFT_ComputeMagnitude(const float *fft_out, uint32_t fft_size,
 }
 
 /**
- * @brief 在FFT幅度谱中找到基频+3次+5次谐波
+ * @brief 在FFT幅度谱中找到最强的3个峰值(基频优先)
  * @param fft_res     FFT结果(含mag[]数组)
  * @param sample_rate 当前采样率(Hz)
  * @param harmonics[out] 输出的谐波峰值数组, 长度=FFT_MAX_HARMONICS
- * @note  只显示基频(f0)、3次谐波(3f0)、5次谐波(5f0)
- *        每个谐波窗口为 ±10%, 取窗口内幅度最高的局部极大值
+ * @note  先找基频(10Hz~20kHz最强峰), 再在谐波窗口(±15%)找3次/5次
+ *        若谐波窗口内无峰, 则退化为取幅度最强的3个峰
  */
 void FFT_FindHarmonics(const FFTResult_t *fft_res, float sample_rate,
                        HarmonicPeak_t *harmonics)
 {
     float bin_hz = sample_rate / (float)FFT_SIZE;
 
-    /* 初始化输出 */
     for (int i = 0; i < FFT_MAX_HARMONICS; i++)
         harmonics[i].valid = 0;
 
     if (sample_rate <= 0.0f) return;
 
-    /* ---- 扫描局部极大值(跳过DC bin0 和 bin1) ---- */
-    #define FFT_MAX_PEAKS 16
+    /* ---- 扫描所有局部极大值(bin1起, 只跳过DC) ---- */
+    #define FFT_MAX_PEAKS 24
     float    pk_db[FFT_MAX_PEAKS];
     uint16_t pk_bin[FFT_MAX_PEAKS];
     uint8_t  pk_n = 0;
 
-    for (uint32_t i = 2; i < FFT_OUT_BINS - 1 && pk_n < FFT_MAX_PEAKS; i++)
+    for (uint32_t i = 1; i < FFT_OUT_BINS - 1 && pk_n < FFT_MAX_PEAKS; i++)
     {
         float db = fft_res->mag[i];
-        if (db < -65.0f) continue;                     /* 低于绝对最小dB */
-        if (db < fft_res->mag[i - 1]) continue;        /* 非局部极大  */
+        if (db < -80.0f) continue;
+        if (db < fft_res->mag[i - 1]) continue;
         if (db < fft_res->mag[i + 1]) continue;
 
-        /* 按幅度降序插入 */
         int8_t pos = pk_n;
         while (pos > 0 && pk_db[pos - 1] < db) pos--;
         for (int8_t j = pk_n; j > pos; j--)
@@ -217,44 +215,55 @@ void FFT_FindHarmonics(const FFTResult_t *fft_res, float sample_rate,
 
     if (pk_n == 0) return;
 
-    /* ---- 找基频: 20Hz~10kHz范围内幅度最高的局部极大值 ---- */
-    float   f0     = 0.0f;
-    float   f0_db  = -200.0f;
-    uint8_t f0_idx = 0xFF;
+    /* ---- 找基频: 10Hz~20kHz内幅度最高的峰 ---- */
+    float   f0    = 0.0f;
+    uint8_t f0_ok = 0;
 
     for (uint8_t i = 0; i < pk_n; i++)
     {
         float freq = (float)pk_bin[i] * bin_hz;
-        if (freq >= 20.0f && freq <= 10000.0f && pk_db[i] > f0_db)
+        if (freq >= 10.0f && freq <= 20000.0f)
         {
-            f0_db  = pk_db[i];
-            f0     = freq;
-            f0_idx = i;
+            f0    = freq;
+            f0_ok = 1;
+            break;  /* pk_n已按幅度降序, 第一个符合条件的即最强 */
         }
     }
-    if (f0_idx == 0xFF) return;  /* 无有效基频 */
 
-    /* ---- 填入3个谐波: 基频, 3次, 5次 ---- */
+    if (!f0_ok)
+    {
+        /* 无基频则取最强3个峰(不限频率) */
+        for (int i = 0; i < FFT_MAX_HARMONICS && i < pk_n; i++)
+        {
+            harmonics[i].valid = 1;
+            harmonics[i].db    = pk_db[i];
+            harmonics[i].freq  = (float)pk_bin[i] * bin_hz;
+            harmonics[i].bin   = pk_bin[i];
+        }
+        #undef FFT_MAX_PEAKS
+        return;
+    }
+
+    /* ---- 谐波窗口 ±15% 搜索: base, 3rd, 5th ---- */
     float harm_target[3] = { f0, f0 * 3.0f, f0 * 5.0f };
+    uint8_t used[FFT_MAX_PEAKS] = {0};
 
     for (int h_idx = 0; h_idx < 3; h_idx++)
     {
-        float target = harm_target[h_idx];
-        float window_lo = target * 0.90f;
-        float window_hi = target * 1.10f;
+        float target    = harm_target[h_idx];
+        float window_lo = target * 0.85f;
+        float window_hi = target * 1.15f;
 
-        /* 在该窗口内找幅度最高的局部极大值 */
         float   best_db  = -200.0f;
-        float   best_f   = 0.0f;
         uint8_t best_idx = 0xFF;
 
         for (uint8_t i = 0; i < pk_n; i++)
         {
+            if (used[i]) continue;
             float freq = (float)pk_bin[i] * bin_hz;
             if (freq >= window_lo && freq <= window_hi && pk_db[i] > best_db)
             {
                 best_db  = pk_db[i];
-                best_f   = freq;
                 best_idx = i;
             }
         }
@@ -262,10 +271,12 @@ void FFT_FindHarmonics(const FFTResult_t *fft_res, float sample_rate,
         if (best_idx != 0xFF)
         {
             harmonics[h_idx].valid = 1;
-            harmonics[h_idx].db    = best_db;
-            harmonics[h_idx].freq  = best_f;
+            harmonics[h_idx].db    = pk_db[best_idx];
+            harmonics[h_idx].freq  = (float)pk_bin[best_idx] * bin_hz;
             harmonics[h_idx].bin   = pk_bin[best_idx];
+            used[best_idx] = 1;
         }
+        /* 留空: 不强制填充 */
     }
 
     #undef FFT_MAX_PEAKS
