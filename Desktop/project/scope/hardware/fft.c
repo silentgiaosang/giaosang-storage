@@ -240,7 +240,6 @@ void FFT_FindHarmonics(const FFTResult_t *fft_res, float sample_rate,
             harmonics[i].freq  = (float)pk_bin[i] * bin_hz;
             harmonics[i].bin   = pk_bin[i];
         }
-        #undef FFT_MAX_PEAKS
         return;
     }
 
