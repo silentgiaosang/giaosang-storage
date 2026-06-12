@@ -233,7 +233,6 @@ void UI_DrawFFT(const FFTResult_t *fft_res)
 #define FFT_DB_RANGE     50.0f   /* 可见动态范围: max_mag往下50dB */
 
     static HarmonicPeak_t s_old_harmonics[FFT_MAX_HARMONICS];
-    static uint8_t        s_old_harm_n = 0;
 
     if (!s_fft_area_inited)
     {
@@ -243,113 +242,98 @@ void UI_DrawFFT(const FFTResult_t *fft_res)
             s_old_harmonics[i].valid = 0;
     }
 
-    /* ---- 擦除上帧谐波标记(竖线+三角+标签) ---- */
-    for (uint8_t i = 0; i < s_old_harm_n; i++)
-    {
-        if (!s_old_harmonics[i].valid) continue;
-
-        /* bin → x: bin1→x0, 最大bin239→x239 */
-        uint16_t ox = (uint16_t)(s_old_harmonics[i].bin - 1);
-        if (ox >= 240) ox = 239;
-
-        /* dB → y: 以max_mag为顶, 向下50dB到底 */
-        float old_db_diff = fft_res->max_mag - s_old_harmonics[i].db;
-        float old_ratio   = 1.0f - (old_db_diff / FFT_DB_RANGE);
-        if (old_ratio < 0.0f) old_ratio = 0.0f;
-        if (old_ratio > 1.0f) old_ratio = 1.0f;
-        uint16_t oy = FFT_PLOT_BOT - (uint16_t)(old_ratio * FFT_PLOT_H + 0.5f);
-
-        if (ox == 0 || ox >= 239) continue;
-
-        /* 擦除竖线（从峰顶到基线）*/
-        LCD_DrawLine(ox, oy, ox, FFT_PLOT_BOT, UI_BG_COLOR);
-
-        /* 擦除三角箭头 */
-        if (ox >= 3 && ox <= 235 && oy > FFT_PLOT_TOP + 5)
-        {
-            LCD_DrawLine(ox, oy, ox - 3, oy + 5, UI_BG_COLOR);
-            LCD_DrawLine(ox, oy, ox + 3, oy + 5, UI_BG_COLOR);
-        }
-
-        /* 擦除标签区域 */
-        uint16_t olx = (ox > 200) ? (ox - 52) : (ox + 6);
-        uint16_t oly = (oy > FFT_PLOT_TOP + 12) ? (oy - 10) : FFT_PLOT_TOP;
-        LCD_Fill(olx, oly,
-                 (olx + 52 < 239) ? (olx + 52) : 239,
-                 (oly + 14 < FFT_PLOT_BOT) ? (oly + 14) : FFT_PLOT_BOT,
-                 UI_BG_COLOR);
-    }
-
-    /* ---- 水平dB参考线 ---- */
-    for (int db = -60; db <= -20; db += 20)
-    {
-        uint16_t gy = FFT_PLOT_TOP + (uint16_t)((float)(-db) / 80.0f * FFT_PLOT_H);
-        for (uint16_t xp = 0; xp < 240; xp += 4)
-            LCD_DrawPoint(xp, gy, UI_GRID_COLOR);
-    }
-
     /* ---- 查找谐波峰值(基频+3次+5次) ---- */
     HarmonicPeak_t harmonics[FFT_MAX_HARMONICS];
     FFT_FindHarmonics(fft_res, g_osc.fft_sample_rate, harmonics);
 
-    /* ---- 绘制谐波峰值 ---- */
+    /* ---- 变更检测: 仅刷新位置变了的谐波标记(消除闪烁) ---- */
     for (uint8_t i = 0; i < FFT_MAX_HARMONICS; i++)
     {
-        if (!harmonics[i].valid) continue;
+        uint8_t  new_valid = harmonics[i].valid;
+        uint8_t  old_valid = s_old_harmonics[i].valid;
+        uint16_t nbin = new_valid ? harmonics[i].bin       : 0;
+        uint16_t obin = old_valid ? s_old_harmonics[i].bin : 0;
+        float    ndb  = new_valid ? harmonics[i].db        : 0.0f;
+        float    odb  = old_valid ? s_old_harmonics[i].db  : 0.0f;
 
-        /* bin → x: bin1→x0, bin239→x239 */
-        uint16_t px = (uint16_t)(harmonics[i].bin - 1);
-        if (px >= 240) px = 239;
-
-        /* dB → y: 以max_mag为顶, 向下50dB到底 */
-        float db_diff = fft_res->max_mag - harmonics[i].db;
-        float ratio   = 1.0f - (db_diff / FFT_DB_RANGE);
-        if (ratio < 0.0f) ratio = 0.0f;
-        if (ratio > 1.0f) ratio = 1.0f;
-        uint16_t py = FFT_PLOT_BOT - (uint16_t)(ratio * FFT_PLOT_H + 0.5f);
-
-        /* 竖线：从峰顶到基线（dB决定高度）*/
-        LCD_DrawLine(px, py, px, FFT_PLOT_BOT, UI_FFT_PEAK_COLOR);
-
-        /* 峰顶三角标记 */
-        if (px >= 3 && px <= 235 && py > FFT_PLOT_TOP + 5)
+        /* 判断是否需要更新: bin差≤1 且 dB差≤3 则跳过 */
+        uint8_t same = 0;
+        if (new_valid && old_valid)
         {
-            LCD_DrawLine(px, py, px - 3, py + 5, UI_FFT_PEAK_COLOR);
-            LCD_DrawLine(px, py, px + 3, py + 5, UI_FFT_PEAK_COLOR);
+            int16_t dx = (int16_t)nbin - (int16_t)obin;
+            if (dx < 0) dx = -dx;
+            float ddb = (ndb > odb) ? (ndb - odb) : (odb - ndb);
+            if (dx <= 1 && ddb <= 3.0f)
+                same = 1;
+        }
+        if (same) continue;
+
+        /* --- 位置变了: 先擦旧 --- */
+        if (old_valid)
+        {
+            uint16_t ox = (uint16_t)(obin - 1);
+            if (ox >= 240) ox = 239;
+            float old_ratio = 1.0f - ((fft_res->max_mag - odb) / FFT_DB_RANGE);
+            if (old_ratio < 0.0f) old_ratio = 0.0f;
+            if (old_ratio > 1.0f) old_ratio = 1.0f;
+            uint16_t oy = FFT_PLOT_BOT - (uint16_t)(old_ratio * FFT_PLOT_H + 0.5f);
+
+            if (ox > 0 && ox < 239)
+            {
+                LCD_DrawLine(ox, oy, ox, FFT_PLOT_BOT, UI_BG_COLOR);
+                if (ox >= 3 && ox <= 235 && oy > FFT_PLOT_TOP + 5)
+                {
+                    LCD_DrawLine(ox, oy, ox - 3, oy + 5, UI_BG_COLOR);
+                    LCD_DrawLine(ox, oy, ox + 3, oy + 5, UI_BG_COLOR);
+                }
+                uint16_t olx = (ox > 200) ? (ox - 52) : (ox + 6);
+                uint16_t oly = (oy > FFT_PLOT_TOP + 12) ? (oy - 10) : FFT_PLOT_TOP;
+                LCD_Fill(olx, oly,
+                         (olx + 52 < 239) ? (olx + 52) : 239,
+                         (oly + 14 < FFT_PLOT_BOT) ? (oly + 14) : FFT_PLOT_BOT,
+                         UI_BG_COLOR);
+            }
         }
 
-        /* 频率标签 */
-        char buf[14];
-        float f = harmonics[i].freq;
-        if (f >= 1000.0f)
-            snprintf(buf, sizeof(buf), "%.1fkHz", f / 1000.0f);
-        else if (f > 0.0f)
-            snprintf(buf, sizeof(buf), "%.0fHz", f);
-        else
-            buf[0] = '\0';
-
-        if (buf[0])
+        /* --- 再画新 --- */
+        if (new_valid)
         {
-            uint16_t lx = (px > 200) ? (px - 52) : (px + 6);
-            uint16_t ly = (py > FFT_PLOT_TOP + 12) ? (py - 10) : FFT_PLOT_TOP;
-            LCD_ShowString(lx, ly, buf, UI_FFT_PEAK_COLOR, UI_BG_COLOR);
+            uint16_t px = (uint16_t)(nbin - 1);
+            if (px >= 240) px = 239;
+            float ratio = 1.0f - ((fft_res->max_mag - ndb) / FFT_DB_RANGE);
+            if (ratio < 0.0f) ratio = 0.0f;
+            if (ratio > 1.0f) ratio = 1.0f;
+            uint16_t py = FFT_PLOT_BOT - (uint16_t)(ratio * FFT_PLOT_H + 0.5f);
+
+            LCD_DrawLine(px, py, px, FFT_PLOT_BOT, UI_FFT_PEAK_COLOR);
+
+            if (px >= 3 && px <= 235 && py > FFT_PLOT_TOP + 5)
+            {
+                LCD_DrawLine(px, py, px - 3, py + 5, UI_FFT_PEAK_COLOR);
+                LCD_DrawLine(px, py, px + 3, py + 5, UI_FFT_PEAK_COLOR);
+            }
+
+            char buf[14];
+            float f = harmonics[i].freq;
+            if (f >= 1000.0f)
+                snprintf(buf, sizeof(buf), "%.1fkHz", f / 1000.0f);
+            else if (f > 0.0f)
+                snprintf(buf, sizeof(buf), "%.0fHz", f);
+            else
+                buf[0] = '\0';
+
+            if (buf[0])
+            {
+                uint16_t lx = (px > 200) ? (px - 52) : (px + 6);
+                uint16_t ly = (py > FFT_PLOT_TOP + 12) ? (py - 10) : FFT_PLOT_TOP;
+                LCD_ShowString(lx, ly, buf, UI_FFT_PEAK_COLOR, UI_BG_COLOR);
+            }
         }
     }
 
-    /* 保存本帧谐波供下帧擦除 */
-    s_old_harm_n = 0;
+    /* 保存本帧谐波供下帧比较 */
     for (uint8_t i = 0; i < FFT_MAX_HARMONICS; i++)
-    {
-        if (harmonics[i].valid)
-        {
-            s_old_harmonics[i] = harmonics[i];
-            s_old_harm_n++;
-        }
-        else
-        {
-            s_old_harmonics[i].valid = 0;
-        }
-    }
+        s_old_harmonics[i] = harmonics[i];
 
     /* ---- 基线 ---- */
     for (uint16_t xp = 0; xp < 240; xp += 4)
@@ -412,27 +396,27 @@ void UI_DrawStatusBar(const Oscilloscope_t *osc)
     }
     else
     {
-        const char *type_str = "";
-        if (osc->disp_mode == DISP_FFT)
-        {
-            switch (osc->wave_type)
-            {
-            case WAVE_SINE:     type_str = " Sin"; break;
-            case WAVE_SQUARE:   type_str = " Sqr"; break;
-            case WAVE_TRIANGLE: type_str = " Tri"; break;
-            case WAVE_SAWTOOTH: type_str = " Saw"; break;
-            default:            type_str = "";     break;
-            }
-        }
-        snprintf(line1, sizeof(line1), "%s%c %c%c %s%s %s",
+        snprintf(line1, sizeof(line1), "%s%c %c%c %s %s",
                  tdiv_str,
                  osc->auto_tb ? 'A' : 'M',
                  (osc->trig_mode == TRIG_AUTO)   ? 'A' :
                  (osc->trig_mode == TRIG_NORMAL) ? 'N' : 'S',
                  (osc->trig_edge == EDGE_RISING) ? 'R' : 'F',
                  (osc->disp_mode == DISP_WAVEFORM) ? "Wav" : "FFT",
-                 type_str,
                  g_vscale_table[osc->vdiv].label);
+    }
+    /* ---- 波形类型标签(FFT模式下显示在Line2末尾) ---- */
+    const char *type_str = "";
+    if (osc->disp_mode == DISP_FFT)
+    {
+        switch (osc->wave_type)
+        {
+        case WAVE_SINE:     type_str = "Sin"; break;
+        case WAVE_SQUARE:   type_str = "Sqr"; break;
+        case WAVE_TRIANGLE: type_str = "Tri"; break;
+        case WAVE_SAWTOOTH: type_str = "Saw"; break;
+        default:            type_str = "";    break;
+        }
     }
     /* ---- Line2: CH0 ---- */
     char line2[32];
@@ -440,18 +424,18 @@ void UI_DrawStatusBar(const Oscilloscope_t *osc)
     if (m0->freq > 0.0f)
     {
         if (m0->freq >= 1000.0f)
-            snprintf(line2, sizeof(line2), "CH0(%s):%.2fkHz %.2fVpp",
-                     osc->coupling_dc[0] ? "DC" : "AC", m0->freq / 1000.0f, m0->vpp);
+            snprintf(line2, sizeof(line2), "CH0(%s):%.2fkHz %.2fVpp %s",
+                     osc->coupling_dc[0] ? "DC" : "AC", m0->freq / 1000.0f, m0->vpp, type_str);
         else if (m0->freq >= 100.0f)
-            snprintf(line2, sizeof(line2), "CH0(%s):%.0fHz %.2fVpp",
-                     osc->coupling_dc[0] ? "DC" : "AC", m0->freq, m0->vpp);
+            snprintf(line2, sizeof(line2), "CH0(%s):%.0fHz %.2fVpp %s",
+                     osc->coupling_dc[0] ? "DC" : "AC", m0->freq, m0->vpp, type_str);
         else
-            snprintf(line2, sizeof(line2), "CH0(%s):%.1fHz %.2fVpp",
-                     osc->coupling_dc[0] ? "DC" : "AC", m0->freq, m0->vpp);
+            snprintf(line2, sizeof(line2), "CH0(%s):%.1fHz %.2fVpp %s",
+                     osc->coupling_dc[0] ? "DC" : "AC", m0->freq, m0->vpp, type_str);
     }
     else
-        snprintf(line2, sizeof(line2), "CH0(%s):--- %.2fVpp",
-                 osc->coupling_dc[0] ? "DC" : "AC", m0->vpp);
+        snprintf(line2, sizeof(line2), "CH0(%s):--- %.2fVpp %s",
+                 osc->coupling_dc[0] ? "DC" : "AC", m0->vpp, type_str);
 
     /* ---- Line3: CH1 ---- */
     char line3[32];
