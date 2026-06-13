@@ -32,8 +32,8 @@ I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_pwr_ex.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_spi.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim_ex.h)(0x6A2AC8D3)
-F (..\hardware\fft.c)(0x6A2AC8D4)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Drivers/CMSIS/DSP/Include -I ../Drivers/CMSIS/DSP/PrivateInclude -I ../hardware-I./RTE/_scope-IC:/Users/giao/AppData/Local/Arm/Packs/ARM/CMSIS/6.2.0/CMSIS/Core/Include-D__UVISION_VERSION="540" -DSTM32F407xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F407xx -DARM_MATH_CM4-o scope/fft.o -MMD)
-I (..\hardware\fft.h)(0x6A2AC8D4)
+F (..\hardware\fft.c)(0x6A2C2852)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Drivers/CMSIS/DSP/Include -I ../Drivers/CMSIS/DSP/PrivateInclude -I ../hardware-I./RTE/_scope-IC:/Users/giao/AppData/Local/Arm/Packs/ARM/CMSIS/6.2.0/CMSIS/Core/Include-D__UVISION_VERSION="540" -DSTM32F407xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F407xx -DARM_MATH_CM4-o scope/fft.o -MMD)
+I (..\hardware\fft.h)(0x6A2C242E)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal.h)(0x6A2AC8D3)
 I (..\Core\Inc\stm32f4xx_hal_conf.h)(0x6A2AC8CE)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_rcc.h)(0x6A2AC8D3)
@@ -84,9 +84,9 @@ I (..\Drivers\CMSIS\DSP\Include\dsp\svm_defines.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\DSP\Include\dsp\transform_functions.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\DSP\Include\dsp\filtering_functions.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\DSP\Include\dsp\quaternion_math_functions.h)(0x6A2AC8D0)
-I (..\hardware\oscilloscope.h)(0x6A2ACA18)
-F (..\hardware\oscilloscope.c)(0x6A2ACA1C)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Drivers/CMSIS/DSP/Include -I ../Drivers/CMSIS/DSP/PrivateInclude -I ../hardware-I./RTE/_scope-IC:/Users/giao/AppData/Local/Arm/Packs/ARM/CMSIS/6.2.0/CMSIS/Core/Include-D__UVISION_VERSION="540" -DSTM32F407xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F407xx -DARM_MATH_CM4-o scope/oscilloscope.o -MMD)
-I (..\hardware\oscilloscope.h)(0x6A2ACA18)
+I (..\hardware\oscilloscope.h)(0x6A2C2843)
+F (..\hardware\oscilloscope.c)(0x6A2C2847)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Drivers/CMSIS/DSP/Include -I ../Drivers/CMSIS/DSP/PrivateInclude -I ../hardware-I./RTE/_scope-IC:/Users/giao/AppData/Local/Arm/Packs/ARM/CMSIS/6.2.0/CMSIS/Core/Include-D__UVISION_VERSION="540" -DSTM32F407xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F407xx -DARM_MATH_CM4-o scope/oscilloscope.o -MMD)
+I (..\hardware\oscilloscope.h)(0x6A2C2843)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal.h)(0x6A2AC8D3)
 I (..\Core\Inc\stm32f4xx_hal_conf.h)(0x6A2AC8CE)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_rcc.h)(0x6A2AC8D3)
@@ -116,7 +116,7 @@ I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_pwr_ex.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_spi.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim_ex.h)(0x6A2AC8D3)
-I (..\hardware\fft.h)(0x6A2AC8D4)
+I (..\hardware\fft.h)(0x6A2C242E)
 I (..\Drivers\CMSIS\DSP\Include\arm_math.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\DSP\Include\arm_math_types.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\Include\cmsis_compiler.h)(0x6A2AC8D3)
@@ -142,8 +142,8 @@ I (..\Core\Inc\adc.h)(0x6A2AC8CE)
 I (..\Core\Inc\main.h)(0x6A2AC8CE)
 I (..\Core\Inc\dma.h)(0x6A2AC8CE)
 I (..\Core\Inc\tim.h)(0x6A2AC8CE)
-F (..\hardware\ui.c)(0x6A2ACD0B)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Drivers/CMSIS/DSP/Include -I ../Drivers/CMSIS/DSP/PrivateInclude -I ../hardware-I./RTE/_scope-IC:/Users/giao/AppData/Local/Arm/Packs/ARM/CMSIS/6.2.0/CMSIS/Core/Include-D__UVISION_VERSION="540" -DSTM32F407xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F407xx -DARM_MATH_CM4-o scope/ui.o -MMD)
-I (..\hardware\ui.h)(0x6A2AC8D4)
+F (..\hardware\ui.c)(0x6A2C286F)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Drivers/CMSIS/DSP/Include -I ../Drivers/CMSIS/DSP/PrivateInclude -I ../hardware-I./RTE/_scope-IC:/Users/giao/AppData/Local/Arm/Packs/ARM/CMSIS/6.2.0/CMSIS/Core/Include-D__UVISION_VERSION="540" -DSTM32F407xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F407xx -DARM_MATH_CM4-o scope/ui.o -MMD)
+I (..\hardware\ui.h)(0x6A2B8CE2)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal.h)(0x6A2AC8D3)
 I (..\Core\Inc\stm32f4xx_hal_conf.h)(0x6A2AC8CE)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_rcc.h)(0x6A2AC8D3)
@@ -173,8 +173,8 @@ I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_pwr_ex.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_spi.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim_ex.h)(0x6A2AC8D3)
-I (..\hardware\oscilloscope.h)(0x6A2ACA18)
-I (..\hardware\fft.h)(0x6A2AC8D4)
+I (..\hardware\oscilloscope.h)(0x6A2C2843)
+I (..\hardware\fft.h)(0x6A2C242E)
 I (..\Drivers\CMSIS\DSP\Include\arm_math.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\DSP\Include\arm_math_types.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\Include\cmsis_compiler.h)(0x6A2AC8D3)
@@ -197,7 +197,7 @@ I (..\Drivers\CMSIS\DSP\Include\dsp\transform_functions.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\DSP\Include\dsp\filtering_functions.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\DSP\Include\dsp\quaternion_math_functions.h)(0x6A2AC8D0)
 I (..\hardware\lcd.h)(0x6A2AC8D4)
-F (../Core/Src/main.c)(0x6A2ACA2D)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Drivers/CMSIS/DSP/Include -I ../Drivers/CMSIS/DSP/PrivateInclude -I ../hardware-I./RTE/_scope-IC:/Users/giao/AppData/Local/Arm/Packs/ARM/CMSIS/6.2.0/CMSIS/Core/Include-D__UVISION_VERSION="540" -DSTM32F407xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F407xx -DARM_MATH_CM4-o scope/main.o -MMD)
+F (../Core/Src/main.c)(0x6A2C285D)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Drivers/CMSIS/DSP/Include -I ../Drivers/CMSIS/DSP/PrivateInclude -I ../hardware-I./RTE/_scope-IC:/Users/giao/AppData/Local/Arm/Packs/ARM/CMSIS/6.2.0/CMSIS/Core/Include-D__UVISION_VERSION="540" -DSTM32F407xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F407xx -DARM_MATH_CM4-o scope/main.o -MMD)
 I (..\Core\Inc\main.h)(0x6A2AC8CE)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal.h)(0x6A2AC8D3)
 I (..\Core\Inc\stm32f4xx_hal_conf.h)(0x6A2AC8CE)
@@ -228,8 +228,8 @@ I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_pwr_ex.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_spi.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim_ex.h)(0x6A2AC8D3)
-I (..\hardware\oscilloscope.h)(0x6A2ACA18)
-I (..\hardware\fft.h)(0x6A2AC8D4)
+I (..\hardware\oscilloscope.h)(0x6A2C2843)
+I (..\hardware\fft.h)(0x6A2C242E)
 I (..\Drivers\CMSIS\DSP\Include\arm_math.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\DSP\Include\arm_math_types.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\Include\cmsis_compiler.h)(0x6A2AC8D3)
@@ -258,7 +258,7 @@ I (..\Core\Inc\spi.h)(0x6A2AC8CE)
 I (..\Core\Inc\tim.h)(0x6A2AC8CE)
 I (..\Core\Inc\gpio.h)(0x6A2AC8CE)
 I (..\hardware\lcd.h)(0x6A2AC8D4)
-I (..\hardware\ui.h)(0x6A2AC8D4)
+I (..\hardware\ui.h)(0x6A2B8CE2)
 F (../Core/Src/gpio.c)(0x6A2AC8CE)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Drivers/CMSIS/DSP/Include -I ../Drivers/CMSIS/DSP/PrivateInclude -I ../hardware-I./RTE/_scope-IC:/Users/giao/AppData/Local/Arm/Packs/ARM/CMSIS/6.2.0/CMSIS/Core/Include-D__UVISION_VERSION="540" -DSTM32F407xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F407xx -DARM_MATH_CM4-o scope/gpio.o -MMD)
 I (..\Core\Inc\gpio.h)(0x6A2AC8CE)
 I (..\Core\Inc\main.h)(0x6A2AC8CE)
@@ -291,8 +291,8 @@ I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_pwr_ex.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_spi.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim_ex.h)(0x6A2AC8D3)
-I (..\hardware\oscilloscope.h)(0x6A2ACA18)
-I (..\hardware\fft.h)(0x6A2AC8D4)
+I (..\hardware\oscilloscope.h)(0x6A2C2843)
+I (..\hardware\fft.h)(0x6A2C242E)
 I (..\Drivers\CMSIS\DSP\Include\arm_math.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\DSP\Include\arm_math_types.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\Include\cmsis_compiler.h)(0x6A2AC8D3)
@@ -314,7 +314,7 @@ I (..\Drivers\CMSIS\DSP\Include\dsp\svm_defines.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\DSP\Include\dsp\transform_functions.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\DSP\Include\dsp\filtering_functions.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\DSP\Include\dsp\quaternion_math_functions.h)(0x6A2AC8D0)
-F (../Core/Src/adc.c)(0x6A2AC8CE)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Drivers/CMSIS/DSP/Include -I ../Drivers/CMSIS/DSP/PrivateInclude -I ../hardware-I./RTE/_scope-IC:/Users/giao/AppData/Local/Arm/Packs/ARM/CMSIS/6.2.0/CMSIS/Core/Include-D__UVISION_VERSION="540" -DSTM32F407xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F407xx -DARM_MATH_CM4-o scope/adc.o -MMD)
+F (../Core/Src/adc.c)(0x6A2B8CE2)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Drivers/CMSIS/DSP/Include -I ../Drivers/CMSIS/DSP/PrivateInclude -I ../hardware-I./RTE/_scope-IC:/Users/giao/AppData/Local/Arm/Packs/ARM/CMSIS/6.2.0/CMSIS/Core/Include-D__UVISION_VERSION="540" -DSTM32F407xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F407xx -DARM_MATH_CM4-o scope/adc.o -MMD)
 I (..\Core\Inc\adc.h)(0x6A2AC8CE)
 I (..\Core\Inc\main.h)(0x6A2AC8CE)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal.h)(0x6A2AC8D3)
@@ -346,8 +346,8 @@ I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_pwr_ex.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_spi.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim_ex.h)(0x6A2AC8D3)
-I (..\hardware\oscilloscope.h)(0x6A2ACA18)
-I (..\hardware\fft.h)(0x6A2AC8D4)
+I (..\hardware\oscilloscope.h)(0x6A2C2843)
+I (..\hardware\fft.h)(0x6A2C242E)
 I (..\Drivers\CMSIS\DSP\Include\arm_math.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\DSP\Include\arm_math_types.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\Include\cmsis_compiler.h)(0x6A2AC8D3)
@@ -401,8 +401,8 @@ I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_pwr_ex.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_spi.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim_ex.h)(0x6A2AC8D3)
-I (..\hardware\oscilloscope.h)(0x6A2ACA18)
-I (..\hardware\fft.h)(0x6A2AC8D4)
+I (..\hardware\oscilloscope.h)(0x6A2C2843)
+I (..\hardware\fft.h)(0x6A2C242E)
 I (..\Drivers\CMSIS\DSP\Include\arm_math.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\DSP\Include\arm_math_types.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\Include\cmsis_compiler.h)(0x6A2AC8D3)
@@ -456,8 +456,8 @@ I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_pwr_ex.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_spi.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim_ex.h)(0x6A2AC8D3)
-I (..\hardware\oscilloscope.h)(0x6A2ACA18)
-I (..\hardware\fft.h)(0x6A2AC8D4)
+I (..\hardware\oscilloscope.h)(0x6A2C2843)
+I (..\hardware\fft.h)(0x6A2C242E)
 I (..\Drivers\CMSIS\DSP\Include\arm_math.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\DSP\Include\arm_math_types.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\Include\cmsis_compiler.h)(0x6A2AC8D3)
@@ -511,8 +511,8 @@ I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_pwr_ex.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_spi.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim_ex.h)(0x6A2AC8D3)
-I (..\hardware\oscilloscope.h)(0x6A2ACA18)
-I (..\hardware\fft.h)(0x6A2AC8D4)
+I (..\hardware\oscilloscope.h)(0x6A2C2843)
+I (..\hardware\fft.h)(0x6A2C242E)
 I (..\Drivers\CMSIS\DSP\Include\arm_math.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\DSP\Include\arm_math_types.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\Include\cmsis_compiler.h)(0x6A2AC8D3)
@@ -566,8 +566,8 @@ I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_pwr_ex.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_spi.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim_ex.h)(0x6A2AC8D3)
-I (..\hardware\oscilloscope.h)(0x6A2ACA18)
-I (..\hardware\fft.h)(0x6A2AC8D4)
+I (..\hardware\oscilloscope.h)(0x6A2C2843)
+I (..\hardware\fft.h)(0x6A2C242E)
 I (..\Drivers\CMSIS\DSP\Include\arm_math.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\DSP\Include\arm_math_types.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\Include\cmsis_compiler.h)(0x6A2AC8D3)
@@ -589,7 +589,7 @@ I (..\Drivers\CMSIS\DSP\Include\dsp\svm_defines.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\DSP\Include\dsp\transform_functions.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\DSP\Include\dsp\filtering_functions.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\DSP\Include\dsp\quaternion_math_functions.h)(0x6A2AC8D0)
-F (../Core/Src/stm32f4xx_it.c)(0x6A2ACB31)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Drivers/CMSIS/DSP/Include -I ../Drivers/CMSIS/DSP/PrivateInclude -I ../hardware-I./RTE/_scope-IC:/Users/giao/AppData/Local/Arm/Packs/ARM/CMSIS/6.2.0/CMSIS/Core/Include-D__UVISION_VERSION="540" -DSTM32F407xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F407xx -DARM_MATH_CM4-o scope/stm32f4xx_it.o -MMD)
+F (../Core/Src/stm32f4xx_it.c)(0x6A2BA294)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Drivers/CMSIS/DSP/Include -I ../Drivers/CMSIS/DSP/PrivateInclude -I ../hardware-I./RTE/_scope-IC:/Users/giao/AppData/Local/Arm/Packs/ARM/CMSIS/6.2.0/CMSIS/Core/Include-D__UVISION_VERSION="540" -DSTM32F407xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F407xx -DARM_MATH_CM4-o scope/stm32f4xx_it.o -MMD)
 I (..\Core\Inc\main.h)(0x6A2AC8CE)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal.h)(0x6A2AC8D3)
 I (..\Core\Inc\stm32f4xx_hal_conf.h)(0x6A2AC8CE)
@@ -620,8 +620,8 @@ I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_pwr_ex.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_spi.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim_ex.h)(0x6A2AC8D3)
-I (..\hardware\oscilloscope.h)(0x6A2ACA18)
-I (..\hardware\fft.h)(0x6A2AC8D4)
+I (..\hardware\oscilloscope.h)(0x6A2C2843)
+I (..\hardware\fft.h)(0x6A2C242E)
 I (..\Drivers\CMSIS\DSP\Include\arm_math.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\DSP\Include\arm_math_types.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\Include\cmsis_compiler.h)(0x6A2AC8D3)
@@ -644,7 +644,7 @@ I (..\Drivers\CMSIS\DSP\Include\dsp\transform_functions.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\DSP\Include\dsp\filtering_functions.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\DSP\Include\dsp\quaternion_math_functions.h)(0x6A2AC8D0)
 I (..\Core\Inc\stm32f4xx_it.h)(0x6A2AC8CE)
-I (..\hardware\ui.h)(0x6A2AC8D4)
+I (..\hardware\ui.h)(0x6A2B8CE2)
 F (../Core/Src/stm32f4xx_hal_msp.c)(0x6A2AC8CE)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-D__MICROLIB -gdwarf-4 -O3 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Drivers/CMSIS/DSP/Include -I ../Drivers/CMSIS/DSP/PrivateInclude -I ../hardware-I./RTE/_scope-IC:/Users/giao/AppData/Local/Arm/Packs/ARM/CMSIS/6.2.0/CMSIS/Core/Include-D__UVISION_VERSION="540" -DSTM32F407xx -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F407xx -DARM_MATH_CM4-o scope/stm32f4xx_hal_msp.o -MMD)
 I (..\Core\Inc\main.h)(0x6A2AC8CE)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal.h)(0x6A2AC8D3)
@@ -676,8 +676,8 @@ I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_pwr_ex.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_spi.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim.h)(0x6A2AC8D3)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim_ex.h)(0x6A2AC8D3)
-I (..\hardware\oscilloscope.h)(0x6A2ACA18)
-I (..\hardware\fft.h)(0x6A2AC8D4)
+I (..\hardware\oscilloscope.h)(0x6A2C2843)
+I (..\hardware\fft.h)(0x6A2C242E)
 I (..\Drivers\CMSIS\DSP\Include\arm_math.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\DSP\Include\arm_math_types.h)(0x6A2AC8D0)
 I (..\Drivers\CMSIS\Include\cmsis_compiler.h)(0x6A2AC8D3)

@@ -260,18 +260,18 @@ void EXTI0_IRQHandler(void)
     else if (b)
     {
       /* CCW: V/div 减小(放大波形) */
-      if (g_osc.vdiv < VSCALE_500MV)
+      if (g_osc.vdiv > VSCALE_10MV)
       {
-        Osc_SetVScale((OscVScale_t)(g_osc.vdiv + 1));
+        Osc_SetVScale((OscVScale_t)(g_osc.vdiv - 1));
         g_enc_ui_dirty = 1;
       }
     }
     else
     {
       /* CW: V/div 增大(缩小波形) */
-      if (g_osc.vdiv > VSCALE_2V)
+      if (g_osc.vdiv < VSCALE_1V)
       {
-        Osc_SetVScale((OscVScale_t)(g_osc.vdiv - 1));
+        Osc_SetVScale((OscVScale_t)(g_osc.vdiv + 1));
         g_enc_ui_dirty = 1;
       }
     }
