@@ -114,9 +114,11 @@ last_dac_ms    = HAL_GetTick();
         Osc_AutoTimebase();
 
         UI_DrawWaveform(OSC_CH0, g_osc.disp_buf[OSC_CH0],
-                        OSC_PRE_TRIG, g_osc.trig_found, 1);
+                        OSC_PRE_TRIG, g_osc.trig_found,
+                        g_osc.trig_channel == OSC_CH0);
         UI_DrawWaveform(OSC_CH1, g_osc.disp_buf[OSC_CH1],
-                        0, 0, 0);
+                        0, 0,
+                        g_osc.trig_channel == OSC_CH1);
       }
       else
       {
@@ -170,7 +172,7 @@ void SystemClock_Config(void)
 /*
  * 编码器: SW2(PD2=EXTI2_A, PD3=B)调整时基, SW3(PD0=EXTI0_A, PD1=B)调整垂直幅度
  *          EXTI下降沿中断驱动, ISR在stm32f4xx_it.c中
- * 按键:   K1(PD13)=AUTO, K2(PD11)=CH1_DC/AC, K3(PD9)=CH2_DC/AC,
+ * 按键:   K1(PD13)=AUTO, K2(PD11)=触发通道切换, K3(PD9)=双通道同步耦合,
  *         K4(PD12)=MODE, K5(PD10)=预留, K6(PD8)=预留
  * 继电器: PE0=CH1耦合, PE11=CH2耦合 (1=DC)
  */
@@ -241,15 +243,20 @@ static void IO_Process(void)
         g_osc.auto_tb = 1;
         UI_ClearWaveAreas(); UI_ResetCache(); UI_DrawGrids();
       }
-      else if (i == 1)  /* K2(PD11): CH1 DC/AC切换 */
+      else if (i == 1)  /* K2(PD11): 触发通道切换 */
       {
-        Osc_ToggleCoupling(OSC_CH0);
-        HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_0);
+        g_osc.trig_channel = !g_osc.trig_channel;
+        UI_ResetStatusBar();
       }
-      else if (i == 2)  /* K3(PD9): CH2 DC/AC切换 */
+      else if (i == 2)  /* K3(PD9): 双通道同步耦合切换(以CH2为准) */
       {
         Osc_ToggleCoupling(OSC_CH1);
         HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_11);
+        g_osc.coupling_dc[OSC_CH0] = g_osc.coupling_dc[OSC_CH1];
+        if (g_osc.coupling_dc[OSC_CH0])
+          HAL_GPIO_WritePin(GPIOE, GPIO_PIN_0, GPIO_PIN_SET);
+        else
+          HAL_GPIO_WritePin(GPIOE, GPIO_PIN_0, GPIO_PIN_RESET);
       }
       else if (i == 3)  /* K4(PD12): MODE切换 */
       {

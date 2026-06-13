@@ -110,10 +110,11 @@ typedef struct {
     /* ---- DMA位置跟踪 ---- */
     uint32_t dma_last_pos;                    /* 上次读DMA位置          */
 
-    /* ---- 触发状态 (CH0触发) ---- */
+    /* ---- 触发状态 ---- */
     OscTrigMode_t trig_mode;                  /* 触发模式              */
     OscTrigEdge_t trig_edge;                  /* 触发边沿              */
     uint16_t      trig_level;                 /* 触发电平(ADC count)   */
+    uint8_t       trig_channel;               /* 触发源(0=CH0, 1=CH1)  */
     uint8_t       trig_found;                 /* 1=本次找到触发点      */
     uint32_t      trig_pos;                   /* 触发点在DMA buffer偏移*/
     uint32_t      trig_timeout;               /* Auto模式超时计数器    */

@@ -385,11 +385,12 @@ void UI_DrawStatusBar(const Oscilloscope_t *osc)
     if (g_trig_adj_mode)
     {
         float trig_v = osc->trig_level * 3.3f / 4096.0f;
-        snprintf(line1, sizeof(line1), "TRIG:%.2fV %c%c %s %s",
+        snprintf(line1, sizeof(line1), "TRIG:%.2fV %c%c[%d] %s",
                  trig_v,
                  (osc->trig_mode == TRIG_AUTO)   ? 'A' :
                  (osc->trig_mode == TRIG_NORMAL) ? 'N' : 'S',
                  (osc->trig_edge == EDGE_RISING) ? 'R' : 'F',
+                 osc->trig_channel,
                  g_vscale_table[osc->vdiv].label);
     }
     else
@@ -399,12 +400,13 @@ void UI_DrawStatusBar(const Oscilloscope_t *osc)
             snprintf(mode_str, sizeof(mode_str), "Wav");
         else
             snprintf(mode_str, sizeof(mode_str), "F%d", osc->fft_channel);
-        snprintf(line1, sizeof(line1), "%s%c %c%c %s %s",
+        snprintf(line1, sizeof(line1), "%s%c %c%c[%d] %s %s",
                  tdiv_str,
                  osc->auto_tb ? 'A' : 'M',
                  (osc->trig_mode == TRIG_AUTO)   ? 'A' :
                  (osc->trig_mode == TRIG_NORMAL) ? 'N' : 'S',
                  (osc->trig_edge == EDGE_RISING) ? 'R' : 'F',
+                 osc->trig_channel,
                  mode_str,
                  g_vscale_table[osc->vdiv].label);
     }

@@ -4,7 +4,7 @@
  * @brief   双通道示波器核心引擎
  *          - TIM2精确时基控制
  *          - DMA循环buffer管理(独立双通道CH0/CH1)
- *          - 软件触发检测(上升/下降沿, CH0触发)
+ *          - 软件触发检测(上升/下降沿, 可选CH0/CH1触发源)
  *          - 双通道波形提取 & 自动测量 & 波形有无判断
  ******************************************************************************
  */
@@ -126,19 +126,19 @@ static inline uint32_t Osc_DMA_GetWritePos(void)
     return (OSC_ADC_BUF_SIZE - ndtr) % OSC_ADC_BUF_SIZE;
 }
 
-/* =========================== 触发检测(CH0) =========================== */
+/* =========================== 触发检测 =========================== */
 /**
- * @brief 在CH0 DMA缓冲区中扫描触发事件
+ * @brief 在选定触发通道的DMA缓冲区中扫描触发事件
  * @param start_pos  扫描起点(DMA buffer偏移, 0..2047)
  * @param len        扫描长度
  * @return 触发点偏移, 0xFFFFFFFF=未找到
- * @note   独立双ADC: CH0在adc_buf[0][], 线性扫描
+ * @note   独立双ADC, 按g_osc.trig_channel选择触发源
  */
 static uint32_t Osc_ScanTrigger(uint32_t start_pos, uint32_t len)
 {
     if (len < 2) return 0xFFFFFFFF;  /* 至少2个样本 */
 
-    uint16_t *buf = g_osc.adc_buf[OSC_CH0];
+    uint16_t *buf = g_osc.adc_buf[g_osc.trig_channel];
 
     uint16_t prev = buf[start_pos % OSC_ADC_BUF_SIZE];
     uint32_t p = (start_pos + 1) % OSC_ADC_BUF_SIZE;
@@ -175,7 +175,7 @@ void Osc_Capture(void)
     uint16_t sps = g_tb_table[g_osc.timebase].sps;
     float    step = (float)sps / (float)OSC_DISP_WIDTH;
 
-    /* ---- 扫描新数据区寻找触发(CH0) ---- */
+    /* ---- 扫描新数据区寻找触发 ---- */
     uint32_t new_len;
     if (write_pos >= g_osc.dma_last_pos)
         new_len = write_pos - g_osc.dma_last_pos;
@@ -438,15 +438,16 @@ void Osc_DoMeasurements(void)
 void Osc_Init(void)
 {
     g_osc.timebase    = TB_100US;
-    g_osc.trig_mode   = TRIG_AUTO;
-    g_osc.trig_edge   = EDGE_RISING;
-    g_osc.trig_level  = 2048;
-    g_osc.disp_mode   = DISP_WAVEFORM;
+    g_osc.trig_mode    = TRIG_AUTO;
+    g_osc.trig_edge    = EDGE_RISING;
+    g_osc.trig_level   = 2048;
+    g_osc.trig_channel = OSC_CH1;       /* 默认CH1触发 */
+    g_osc.disp_mode    = DISP_WAVEFORM;
     g_osc.dma_last_pos = 0;
-    g_osc.trig_found  = 0;
+    g_osc.trig_found   = 0;
     g_osc.trig_timeout = 0;
-    g_osc.trig_armed  = 0;
-    g_osc.tb_dirty    = 0;
+    g_osc.trig_armed   = 0;
+    g_osc.tb_dirty     = 0;
     g_osc.running     = 0;
     g_osc.fft_sample_rate = 0.0f;
     g_osc.wave_type       = WAVE_UNKNOWN;
