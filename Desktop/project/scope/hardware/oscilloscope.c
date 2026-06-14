@@ -55,6 +55,8 @@ const TimebaseEntry_t g_tb_table[TB_NUM] = {
     { 0,  34999,    2400, 1, 240, "10ms/div"},
     /* TB_20MS:  200ms满屏, 1.2kHz*200ms=240样本 直出     */
     { 3,  17499,    1200, 1, 240, "20ms/div"},
+    /* TB_200MS: 2s满屏,   120Hz*2s=240样本 直出          */
+    { 0,  17499,     120, 1, 240, "200ms/div"},
 };
 
 /* =========================== V/div参数表 =========================== */
@@ -569,7 +571,7 @@ void Osc_AutoTimebase(void)
 
     /* 钳位到表内最大/最小采样率 */
     float max_hz = (float)g_tb_table[TB_5US].sample_hz;
-    float min_hz = (float)g_tb_table[TB_20MS].sample_hz;
+    float min_hz = (float)g_tb_table[TB_200MS].sample_hz;
     if (target_hz > max_hz) target_hz = max_hz;
     if (target_hz < min_hz)  target_hz = min_hz;
 
@@ -600,7 +602,7 @@ void Osc_TimebaseFineTune(int8_t dir)
 {
     g_osc.auto_tb = 0;   /* 手动模式 */
 
-    if (dir > 0 && g_osc.timebase < TB_20MS)
+    if (dir > 0 && g_osc.timebase < TB_200MS)
         Osc_SetTimebase((OscTimebase_t)(g_osc.timebase + 1));
     else if (dir < 0 && g_osc.timebase > TB_5US)
         Osc_SetTimebase((OscTimebase_t)(g_osc.timebase - 1));
@@ -672,7 +674,7 @@ void Osc_AutoSet(void)
         const float tb_vals[TB_NUM] = {
             5e-6f, 10e-6f, 20e-6f, 50e-6f,
             100e-6f, 200e-6f, 500e-6f,
-            1e-3f, 2e-3f, 5e-3f, 10e-3f, 20e-3f
+            1e-3f, 2e-3f, 5e-3f, 10e-3f, 20e-3f, 200e-3f
         };
 
         OscTimebase_t best_tb = TB_100US;

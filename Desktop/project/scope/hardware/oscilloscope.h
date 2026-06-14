@@ -38,6 +38,7 @@ typedef enum {
     TB_5MS,        /*   50ms满屏, 2.56kHz                             */
     TB_10MS,       /*  100ms满屏, 1.28kHz                             */
     TB_20MS,       /*  200ms满屏, 640Hz                               */
+    TB_200MS,      /*    2s满屏, 120Hz                                */
     TB_NUM
 } OscTimebase_t;
 
