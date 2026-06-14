@@ -27,7 +27,7 @@ extern "C" {
 #define UI_STATUSBAR_TOP    270     /* 状态栏顶部Y                */
 #define UI_STATUSBAR_BOTTOM 319     /* 状态栏底部Y                */
 #define UI_GRID_DIVS        10      /* X方向格数                  */
-#define UI_GRID_DIV_Y       5       /* Y方向格数(每27px一格)      */
+#define UI_GRID_DIV_Y       10      /* Y方向格数(每通道)          */
 #define UI_GRID_COLOR       0x4208  /* 网格颜色(暗灰)             */
 #define UI_WAVE_COLOR_CH0   0xFFE0  /* CH0波形颜色(黄)           */
 #define UI_WAVE_COLOR_CH1   0x07E0  /* CH1波形颜色(绿)           */

@@ -80,10 +80,10 @@ void UI_DrawGrids(void)
                 LCD_DrawPoint(gx, gy, UI_GRID_COLOR);
         }
 
-        /* 横虚线(5格, 每格27px) */
-        for (int gy = 0; gy <= 5; gy++)
+        /* 横虚线(10格, 每格约13.5px) */
+        for (int gy = 0; gy <= UI_GRID_DIV_Y; gy++)
         {
-            uint16_t y = ch_top + gy * 27;
+            uint16_t y = ch_top + (gy * UI_CH_HEIGHT) / UI_GRID_DIV_Y;
             if (y > ch_bot) y = ch_bot;
             for (uint16_t gx = 0; gx < 240; gx += 2)
                 LCD_DrawPoint(gx, y, UI_GRID_COLOR);
