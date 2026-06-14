@@ -62,9 +62,9 @@ const TimebaseEntry_t g_tb_table[TB_NUM] = {
 /* =========================== V/div参数表 =========================== */
 /* adc_span: 满屏(10div)对应的ADC跨度, 用于Y轴缩放                    */
 const VScaleEntry_t g_vscale_table[VSCALE_NUM] = {
-    {   62, "10mV"  },     /* 满屏=0.1V (10div×10mV)                 */
-    {  620, "100mV" },     /* 满屏=1.0V (10div×100mV)               */
-    { 4095, "1V"    },     /* 满屏=3.3V  (ADC满量程,钳位)             */
+    {  124, "10mV"  },     /* 满屏=0.1V (10div×10mV)                  */
+    { 1241, "100mV" },     /* 满屏=1.0V (10div×100mV)                */
+    { 4095, "1V"    },     /* 满屏=3.3V (ADC满量程,钳位)              */
 };
 
 uint16_t Osc_GetAdcSpan(void)
