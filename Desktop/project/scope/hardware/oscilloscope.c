@@ -64,7 +64,7 @@ const TimebaseEntry_t g_tb_table[TB_NUM] = {
 const VScaleEntry_t g_vscale_table[VSCALE_NUM] = {
     {  124, "10mV"  },     /* 满屏=0.1V (10div×10mV)                  */
     { 1241, "100mV" },     /* 满屏=1.0V (10div×100mV)                */
-    { 4095, "1V"    },     /* 满屏=3.3V (ADC满量程,钳位)              */
+    {12409, "1V"    },     /* 满屏=10V  (软件放大, ADC 3.3V→3.3格)   */
 };
 
 uint16_t Osc_GetAdcSpan(void)
