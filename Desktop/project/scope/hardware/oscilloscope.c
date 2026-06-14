@@ -69,7 +69,20 @@ const VScaleEntry_t g_vscale_table[VSCALE_NUM] = {
 
 uint16_t Osc_GetAdcSpan(void)
 {
-    return g_vscale_table[g_osc.vdiv].adc_span;
+    uint16_t span = g_vscale_table[g_osc.vdiv].adc_span;
+    if (g_osc.atten_enabled && g_osc.vdiv == VSCALE_1V)
+        span /= 6;
+    return span;
+}
+
+void Osc_ToggleAtten(void)
+{
+    g_osc.atten_enabled = !g_osc.atten_enabled;
+}
+
+uint8_t Osc_IsAttenEnabled(void)
+{
+    return g_osc.atten_enabled;
 }
 
 void Osc_SetVScale(OscVScale_t vs)
@@ -281,10 +294,11 @@ void Osc_DoMeasurements(void)
             sum += v;
         }
 
-        m->vmin = vmin * 3.3f / 4096.0f;
-        m->vmax = vmax * 3.3f / 4096.0f;
+        float atten = (g_osc.atten_enabled && g_osc.vdiv == VSCALE_1V) ? 6.0f : 1.0f;
+        m->vmin = vmin * 3.3f / 4096.0f * atten;
+        m->vmax = vmax * 3.3f / 4096.0f * atten;
         m->vpp  = m->vmax - m->vmin;
-        m->vavg = (sum / OSC_DISP_WIDTH) * 3.3f / 4096.0f;
+        m->vavg = (sum / OSC_DISP_WIDTH) * 3.3f / 4096.0f * atten;
 
         /* 波形有无判断: Vpp > adc_span的10% (约0.6div) */
         uint16_t threshold = g_vscale_table[g_osc.vdiv].adc_span / 10;
@@ -459,6 +473,7 @@ void Osc_Init(void)
     g_osc.vdiv            = VSCALE_1V;    /* 默认1V/div */
     g_osc.coupling_dc[0]  = 1;            /* CH0默认DC耦合 */
     g_osc.coupling_dc[1]  = 1;            /* CH1默认DC耦合 */
+    g_osc.atten_enabled   = 0;            /* 衰减修正默认关闭        */
     g_osc.custom_psc      = 0;
     g_osc.custom_arr      = 349;
     g_osc.custom_sample_hz= 240000;

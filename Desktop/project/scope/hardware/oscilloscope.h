@@ -134,6 +134,7 @@ typedef struct {
     OscDispMode_t disp_mode;                  /* 当前显示模式          */
     OscVScale_t   vdiv;                       /* 垂直灵敏度(V/div)     */
     uint8_t       coupling_dc[2];             /* 1=DC耦合, 0=AC(CH0/CH1) */
+    uint8_t       atten_enabled;              /* 1=×6衰减修正启用(仅1V档)  */
 
     /* ---- 测量(每通道独立) ---- */
     OscMeasure_t measure[2];                  /* CH0/CH1测量结果       */
@@ -176,6 +177,8 @@ void Osc_AutoTimebase(void);
 void Osc_TimebaseFineTune(int8_t dir);
 uint32_t Osc_GetCurrentSampleHz(void);
 uint16_t Osc_GetAdcSpan(void);
+void     Osc_ToggleAtten(void);
+uint8_t  Osc_IsAttenEnabled(void);
 
 #ifdef __cplusplus
 }

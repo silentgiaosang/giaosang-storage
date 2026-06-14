@@ -210,6 +210,8 @@ void SystemClock_Config(void)
  */
 static uint8_t  btn_last[6] = {1,1,1,1,1,1};
 static uint32_t io_tick = 0;
+static uint32_t k1_press_time = 0;
+static uint8_t  k1_long_done  = 0;
 
 static void IO_Init(void)
 {
@@ -269,11 +271,10 @@ static void IO_Process(void)
     bn[i] = (HAL_GPIO_ReadPin(GPIOD, bp[i]) == GPIO_PIN_SET) ? 1 : 0;
     if (bn[i] == 0 && btn_last[i] == 1)  /* 按下 */
     {
-      if (i == 0)  /* K1(PD13): AUTO */
+      if (i == 0)  /* K1(PD13): 短按AUTO / 长按2s衰减修正 */
       {
-        Osc_AutoSet();
-        g_osc.auto_tb = 1;
-        UI_ClearWaveAreas(); UI_ResetCache(); UI_DrawGrids();
+        k1_press_time = now;
+        k1_long_done  = 0;
       }
       else if (i == 1)  /* K2(PD11): 触发通道切换 */
       {
@@ -317,7 +318,24 @@ static void IO_Process(void)
         UI_ResetStatusBar();
       }
     }
+    /* K1释放: 短按→AUTO */
+    if (i == 0 && bn[i] == 1 && btn_last[i] == 0 && !k1_long_done)
+    {
+      Osc_AutoSet();
+      g_osc.auto_tb = 1;
+      UI_ClearWaveAreas(); UI_ResetCache(); UI_DrawGrids();
+    }
     btn_last[i] = bn[i];
+  }
+
+  /* K1长按2s→衰减修正切换 */
+  if (bn[0] == 0 && !k1_long_done && now - k1_press_time >= 2000)
+  {
+    Osc_ToggleAtten();
+    k1_long_done = 1;
+    UI_ClearWaveAreas(); UI_ResetCache();
+    if (g_osc.disp_mode == DISP_WAVEFORM) UI_DrawGrids();
+    UI_ResetStatusBar();
   }
 }
 

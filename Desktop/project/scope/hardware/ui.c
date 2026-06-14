@@ -385,13 +385,14 @@ void UI_DrawStatusBar(const Oscilloscope_t *osc)
     if (g_trig_adj_mode)
     {
         float trig_v = osc->trig_level * 3.3f / 4096.0f;
-        snprintf(line1, sizeof(line1), "TRIG:%.2fV %c%c[%d] %s",
+        snprintf(line1, sizeof(line1), "TRIG:%.2fV %c%c[%d] %s%s",
                  trig_v,
                  (osc->trig_mode == TRIG_AUTO)   ? 'A' :
                  (osc->trig_mode == TRIG_NORMAL) ? 'N' : 'S',
                  (osc->trig_edge == EDGE_RISING) ? 'R' : 'F',
                  osc->trig_channel,
-                 g_vscale_table[osc->vdiv].label);
+                 g_vscale_table[osc->vdiv].label,
+                 osc->atten_enabled ? "x6" : "");
     }
     else
     {
@@ -400,6 +401,10 @@ void UI_DrawStatusBar(const Oscilloscope_t *osc)
             snprintf(mode_str, sizeof(mode_str), "Wav");
         else
             snprintf(mode_str, sizeof(mode_str), "F%d", osc->fft_channel);
+        char vdiv_str[12];
+        snprintf(vdiv_str, sizeof(vdiv_str), "%s%s",
+                 g_vscale_table[osc->vdiv].label,
+                 osc->atten_enabled ? "x6" : "");
         snprintf(line1, sizeof(line1), "%s%c %c%c[%d] %s %s",
                  tdiv_str,
                  osc->auto_tb ? 'A' : 'M',
@@ -408,7 +413,7 @@ void UI_DrawStatusBar(const Oscilloscope_t *osc)
                  (osc->trig_edge == EDGE_RISING) ? 'R' : 'F',
                  osc->trig_channel,
                  mode_str,
-                 g_vscale_table[osc->vdiv].label);
+                 vdiv_str);
     }
     /* ---- 波形类型标签(FFT模式下显示在Line2末尾) ---- */
     const char *type_str = "";
