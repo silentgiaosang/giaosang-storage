@@ -50,6 +50,38 @@ static void DAC_TestSignal_Process(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
+static void Signal_Init(void)
+{
+    /* PA9 → TIM1_CH2, 1kHz方波, 50%占空比 */
+    /* TIM1_CLK = APB2_Timer = 168MHz (F407@168MHz) */
+    /* f_out = 168MHz / (PSC+1) / (ARR+1) = 168M / 168 / 1000 = 1kHz */
+
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_TIM1_CLK_ENABLE();
+
+    /* PA9 AF → TIM1_CH2 */
+    GPIOA->MODER   &= ~GPIO_MODER_MODER9;
+    GPIOA->MODER   |=  GPIO_MODER_MODER9_1;        /* AF mode */
+    GPIOA->AFR[1]  &= ~(0x0F << 4);                /* AF1: TIM1_CH2 */
+    GPIOA->AFR[1]  |=  (0x01 << 4);
+
+    /* TIM1 时基 */
+    TIM1->PSC  = 167;           /* /168 = 1MHz */
+    TIM1->ARR  = 999;           /* /1000 = 1kHz */
+    TIM1->CNT  = 0;
+
+    /* TIM1 CH2 PWM Mode1 */
+    TIM1->CCMR1 &= ~TIM_CCMR1_OC2M;
+    TIM1->CCMR1 |=  (6U << TIM_CCMR1_OC2M_Pos);    /* PWM Mode1 */
+    TIM1->CCMR1 |=  TIM_CCMR1_OC2PE;               /* Preload enable */
+    TIM1->CCER  |=  TIM_CCER_CC2E;                 /* CH2 output enable */
+    TIM1->CCR2  = 500;                             /* 50% duty */
+
+    TIM1->BDTR |= TIM_BDTR_MOE;                    /* Main output enable */
+    TIM1->CR1  |= TIM_CR1_ARPE;                    /* ARR preload */
+    TIM1->EGR   = TIM_EGR_UG;                      /* Generate update */
+    TIM1->CR1  |= TIM_CR1_CEN;                     /* Enable counter */
+}
 /* USER CODE END 0 */
 
 int main(void)
@@ -78,7 +110,7 @@ MX_ADC2_Init();
 Osc_Init();
 FFT_Init();
 Osc_Start();
-//DAC_TestSignal_Init();
+Signal_Init();       /* PA9: 1kHz方波输出 */
 
 /* 上电自动设置 */
 HAL_Delay(30);
