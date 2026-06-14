@@ -296,7 +296,7 @@ void EXTI2_IRQHandler(void)
     if (b)
     {
       /* CCW: 时基增大(展宽波形) */
-      if (g_osc.timebase < TB_20MS)
+      if (g_osc.timebase < TB_200MS)
       {
         g_osc.auto_tb = 0;
         Osc_SetTimebase((OscTimebase_t)(g_osc.timebase + 1));
