@@ -279,6 +279,8 @@ void Osc_Capture(void)
 /* =========================== 自动测量(双通道) =========================== */
 void Osc_DoMeasurements(void)
 {
+    uint16_t raw_vmin[2], raw_vmax[2];  /* 原始ADC值(衰减修正前), 供频率测量用 */
+
     /* ---- 逐通道幅度测量 ---- */
     for (uint8_t ch = 0; ch < 2; ch++)
     {
@@ -294,6 +296,9 @@ void Osc_DoMeasurements(void)
             sum += v;
         }
 
+        raw_vmin[ch] = vmin;
+        raw_vmax[ch] = vmax;
+
         float atten = (g_osc.atten_enabled && g_osc.vdiv == VSCALE_1V) ? 5.8f : 1.0f;
         m->vmin = vmin * 3.3f / 4096.0f * atten;
         m->vmax = vmax * 3.3f / 4096.0f * atten;
@@ -308,8 +313,8 @@ void Osc_DoMeasurements(void)
     /* ---- CH0频率/周期/占空比 (基于adc_buf[0], 线性扫描) ---- */
     {
         OscMeasure_t *m = &g_osc.measure[OSC_CH0];
-        uint16_t vmin_adc = (uint16_t)(m->vmin * 4096.0f / 3.3f);
-        uint16_t vmax_adc = (uint16_t)(m->vmax * 4096.0f / 3.3f);
+        uint16_t vmin_adc = raw_vmin[OSC_CH0];
+        uint16_t vmax_adc = raw_vmax[OSC_CH0];
         uint16_t mid_level = (vmin_adc + vmax_adc) / 2;
 
         uint32_t scan_len = 2048;
@@ -395,8 +400,8 @@ void Osc_DoMeasurements(void)
         }
         else
         {
-            uint16_t vmin_adc = (uint16_t)(m->vmin * 4096.0f / 3.3f);
-            uint16_t vmax_adc = (uint16_t)(m->vmax * 4096.0f / 3.3f);
+            uint16_t vmin_adc = raw_vmin[OSC_CH1];
+            uint16_t vmax_adc = raw_vmax[OSC_CH1];
             uint16_t mid_level = (vmin_adc + vmax_adc) / 2;
 
             uint32_t scan_len = 2048;
