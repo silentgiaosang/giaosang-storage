@@ -301,7 +301,7 @@ void Osc_DoMeasurements(void)
         m->vavg = (sum / OSC_DISP_WIDTH) * 3.3f / 4096.0f * atten;
 
         /* 波形有无判断: Vpp > adc_span的10% (约0.6div) */
-        uint16_t threshold = g_vscale_table[g_osc.vdiv].adc_span / 10;
+        uint16_t threshold = Osc_GetAdcSpan() / 10;
         g_osc.wave_present[ch] = ((vmax - vmin) > threshold) ? 1 : 0;
     }
 
