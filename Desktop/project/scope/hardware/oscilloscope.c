@@ -71,7 +71,7 @@ uint16_t Osc_GetAdcSpan(void)
 {
     uint16_t span = g_vscale_table[g_osc.vdiv].adc_span;
     if (g_osc.atten_enabled && g_osc.vdiv == VSCALE_1V)
-        span = (uint16_t)((float)span / 5.5f);
+        span = (uint16_t)((float)span / 5.8f);
     return span;
 }
 
@@ -294,7 +294,7 @@ void Osc_DoMeasurements(void)
             sum += v;
         }
 
-        float atten = (g_osc.atten_enabled && g_osc.vdiv == VSCALE_1V) ? 5.5f : 1.0f;
+        float atten = (g_osc.atten_enabled && g_osc.vdiv == VSCALE_1V) ? 5.8f : 1.0f;
         m->vmin = vmin * 3.3f / 4096.0f * atten;
         m->vmax = vmax * 3.3f / 4096.0f * atten;
         m->vpp  = m->vmax - m->vmin;

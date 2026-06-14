@@ -392,7 +392,7 @@ void UI_DrawStatusBar(const Oscilloscope_t *osc)
                  (osc->trig_edge == EDGE_RISING) ? 'R' : 'F',
                  osc->trig_channel,
                  g_vscale_table[osc->vdiv].label,
-                 osc->atten_enabled ? "x5.5" : "");
+                 osc->atten_enabled ? "x5.8" : "");
     }
     else
     {
@@ -404,7 +404,7 @@ void UI_DrawStatusBar(const Oscilloscope_t *osc)
         char vdiv_str[12];
         snprintf(vdiv_str, sizeof(vdiv_str), "%s%s",
                  g_vscale_table[osc->vdiv].label,
-                 osc->atten_enabled ? "x5.5" : "");
+                 osc->atten_enabled ? "x5.8" : "");
         snprintf(line1, sizeof(line1), "%s%c %c%c[%d] %s %s",
                  tdiv_str,
                  osc->auto_tb ? 'A' : 'M',
