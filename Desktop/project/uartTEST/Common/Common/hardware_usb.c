@@ -19,7 +19,6 @@
 void USB_Hardware_Init(void)
 {
     RCC_HB2PeriphClockCmd(RCC_HB2Periph_AFIO | RCC_HB2Periph_GPIOB, ENABLE);
-    GPIO_PinRemapConfig(GPIO_Remap_SWJ_Disable, ENABLE);
 
     /* USB link timer (used for fallback timeout) */
     USB_Timer_Init();
