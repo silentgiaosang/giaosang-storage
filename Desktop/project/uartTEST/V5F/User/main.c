@@ -137,10 +137,13 @@ int main(void)
             Delay_Ms(100);
             wait_cnt++;
             if (wait_cnt % 10 == 0) {  /* every 1 second */
-                printf("  state=%d ss=%d hs=%d\r\n",
+                uint32_t link_state = USBSSH->LINK_STATUS & 0xF;
+                uint32_t link_cfg   = USBSSD->LINK_CFG;
+                printf("  state=%d ss=%d hs=%d LINK=0x%02lX CFG=0x%08lX\r\n",
                        (int)USB_Enum_Status,
                        (int)USBSS_DevEnumStatus,
-                       (int)USBHS_DevEnumStatus);
+                       (int)USBHS_DevEnumStatus,
+                       link_state, link_cfg);
             }
         }
     }
