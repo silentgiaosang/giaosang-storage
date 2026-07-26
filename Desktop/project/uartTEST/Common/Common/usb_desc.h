@@ -21,19 +21,37 @@ extern "C" {
 /* HS (USB 2.0 High Speed) EP sizes */
 #define DEF_USBD_HS_PACK_SIZE        512
 #define DEF_USB_EP1_HS_SIZE          DEF_USBD_HS_PACK_SIZE
+#define DEF_USB_EP2_HS_SIZE          DEF_USBD_HS_PACK_SIZE
+#define DEF_USB_EP3_HS_SIZE          DEF_USBD_HS_PACK_SIZE
+#define DEF_USB_EP4_HS_SIZE          DEF_USBD_HS_PACK_SIZE
+#define DEF_USB_EP5_HS_SIZE          DEF_USBD_HS_PACK_SIZE
+#define DEF_USB_EP6_HS_SIZE          DEF_USBD_HS_PACK_SIZE
 
 /* FS (USB 2.0 Full Speed) EP sizes */
 #define DEF_USBD_FS_PACK_SIZE        64
 #define DEF_USB_EP1_FS_SIZE          DEF_USBD_FS_PACK_SIZE
+#define DEF_USB_EP2_FS_SIZE          DEF_USBD_FS_PACK_SIZE
+#define DEF_USB_EP3_FS_SIZE          DEF_USBD_FS_PACK_SIZE
 
 /* SS (USB 3.0 SuperSpeed) EP sizes */
 #define DEF_USB_EP1_SS_SIZE          1024
+#define DEF_USB_EP2_SS_SIZE          1024
+#define DEF_USB_EP3_SS_SIZE          1024
+#define DEF_USB_EP4_SS_SIZE          1024
 
 /* SS burst / chain config */
 #define DEF_ENDP1_OUT_BURST_LEVEL     16
 #define DEF_ENDP1_IN_BURST_LEVEL      16
 #define DEF_ENDP1_OUT_BUFF_SIZE       2
 #define DEF_ENDP1_IN_BUFF_SIZE        2
+#define DEF_ENDP2_OUT_BURST_LEVEL     16
+#define DEF_ENDP2_IN_BURST_LEVEL      16
+#define DEF_ENDP2_OUT_BUFF_SIZE       2
+#define DEF_ENDP2_IN_BUFF_SIZE        2
+#define DEF_ENDP3_OUT_BURST_LEVEL     16
+#define DEF_ENDP3_IN_BURST_LEVEL      16
+#define DEF_ENDP3_OUT_BUFF_SIZE       2
+#define DEF_ENDP3_IN_BUFF_SIZE        2
 
 /* USB3 BOS descriptor */
 #define DEF_USBSSD_BOS_DESC_LEN      22
@@ -53,6 +71,14 @@ extern "C" {
 #define DEF_USBD_MANU_DESC_LEN       32
 #define DEF_USBD_PROD_DESC_LEN       32
 #define DEF_USBD_SN_DESC_LEN         12
+#define DEF_USBD_QUALFY_DESC_LEN    10
+#define DEF_USBD_OS_DESC_LEN        40
+
+/* Other descriptor macros used by usbhs_device */
+#define DEF_USBSSD_OS_DESC_LEN       DEF_USBD_OS_DESC_LEN
+#define DEF_USBSSD_QUA_DESC_LEN      DEF_USBD_QUALFY_DESC_LEN
+#define DEF_USBD_FS_OTH_DESC_LEN     DEF_USBD_CONFIG_HS_DESC_LEN
+#define DEF_USBD_HS_OTH_DESC_LEN     DEF_USBD_CONFIG_FS_DESC_LEN
 
 /* SS descriptors */
 extern const uint8_t SS_DeviceDescriptor[];
@@ -63,6 +89,13 @@ extern const uint8_t MyBOSDesc_SS[];
 extern const uint8_t MyDevDescr[];
 extern const uint8_t MyCfgDescr_HS[];
 extern const uint8_t MyCfgDescr_FS[];
+
+/* Qualifier descriptor */
+extern const uint8_t MyQuaDesc[];
+
+/* OS string descriptors (MS OS 2.0 descriptor) */
+extern uint8_t TAB_USB_FS_OSC_DESC[];
+extern uint8_t TAB_USB_HS_OSC_DESC[];
 
 /* String descriptors (shared) */
 extern const uint8_t MyLangDescr[];

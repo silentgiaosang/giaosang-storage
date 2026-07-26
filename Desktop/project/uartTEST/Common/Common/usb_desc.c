@@ -249,3 +249,21 @@ const uint8_t MySerNumInfo[] =
     12, 0x03,
     '0',0,'0',0,'0',0,'1',0,'A',0,
 };
+
+/* Device Qualifier Descriptor (required by USB 2.0, minimal for USB 3.0) */
+const uint8_t MyQuaDesc[] =
+{
+    0x0A,                   /* bLength */
+    0x06,                   /* bDescriptorType: Device Qualifier */
+    0x00, 0x02,             /* bcdUSB 2.0 */
+    0xFF,                   /* bDeviceClass */
+    0x00,                   /* bDeviceSubClass */
+    0x00,                   /* bDeviceProtocol */
+    DEF_USBD_UEP0_SIZE,     /* bMaxPacketSize0 */
+    0x01,                   /* bNumConfigurations */
+    0x00,                   /* bReserved */
+};
+
+/* OS String Descriptors for HS/FS (MS OS 2.0 — required by usbhs_device) */
+uint8_t TAB_USB_FS_OSC_DESC[DEF_USBD_OS_DESC_LEN] = {0};
+uint8_t TAB_USB_HS_OSC_DESC[DEF_USBD_OS_DESC_LEN] = {0};
