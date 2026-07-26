@@ -7,6 +7,7 @@
 #include "hsadc_fft.h"
 #include "usb_osc_it.h"
 #include "usbss_device.h"
+#include "usbhs_device.h"
 #include "hardware_usb.h"
 
 /* ================================================================
@@ -128,13 +129,25 @@ int main(void)
     printf("HSADC init done (CLK=%d Hz, %d Msps)\r\n",
            (int)(SystemCoreClock), (int)(HSADC_FFT_SAMPLE_RATE / 1000000));
 
-    /* Wait for USB enumeration to complete */
+    /* Wait for USB enumeration to complete (USBSS or USBHS fallback) */
     printf("Waiting for USB enumeration...\r\n");
-    while (!USBSS_DevEnumStatus) {
-        /* USB link training runs in ISR context */
-        Delay_Ms(10);
+    {
+        uint32_t wait_cnt = 0;
+        while (!USBSS_DevEnumStatus && !USBHS_DevEnumStatus) {
+            Delay_Ms(100);
+            wait_cnt++;
+            if (wait_cnt % 10 == 0) {  /* every 1 second */
+                printf("  state=%d ss=%d hs=%d\r\n",
+                       (int)USB_Enum_Status,
+                       (int)USBSS_DevEnumStatus,
+                       (int)USBHS_DevEnumStatus);
+            }
+        }
     }
-    printf("USB enumeration complete! Starting data stream...\r\n");
+    if (USBSS_DevEnumStatus)
+        printf("USBSS enumeration complete! Starting data stream...\r\n");
+    else
+        printf("USBHS enumeration complete (fallback)! Starting data stream...\r\n");
 
     /* Start HSADC continuous capture */
     HSADC_FFT_Start();
