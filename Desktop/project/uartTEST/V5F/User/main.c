@@ -6,6 +6,7 @@
 #include "debug.h"
 #include "hsadc_fft.h"
 #include "usb_osc_it.h"
+#include "usbss_device.h"
 #include "hardware_usb.h"
 
 /* ================================================================

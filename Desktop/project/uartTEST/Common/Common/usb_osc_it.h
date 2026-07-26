@@ -15,6 +15,9 @@ extern "C" {
 extern __attribute__((aligned(4))) uint8_t g_usb_ep1_tx_buf0[];
 extern __attribute__((aligned(4))) uint8_t g_usb_ep1_tx_buf1[];
 
+/* EP1 TX buffer selector (0 or 1) */
+extern volatile uint8_t g_usb_tx_buf_sel;
+
 /* Flags */
 extern volatile uint8_t g_usb_ep1_tx_ready;
 extern volatile uint8_t g_usb_cmd_ready;

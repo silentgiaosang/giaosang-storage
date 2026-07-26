@@ -53,6 +53,9 @@ __attribute__ ((aligned(4))) uint8_t USBSS_EP0_Buf[512];
 __attribute__ ((aligned(4))) uint8_t USBSS_EP1_Rx_Buf[1024 * 16 * 2];
 __attribute__ ((aligned(4))) uint8_t USBSS_EP2_Rx_Buf[1024 * 16 * 2];
 __attribute__ ((aligned(4))) uint8_t USBSS_EP3_Rx_Buf[1024 * 16 * 2];
+
+/* ================================================================
+ *  Oscilloscope data transfer buffers
  *  DMA-capable, aligned to 4 bytes
  * ================================================================ */
 
