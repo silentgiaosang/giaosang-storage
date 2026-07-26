@@ -16,16 +16,11 @@
  * ================================================================ */
 extern USBSS_Dev_Info_t USBSS_Dev_Info;
 extern volatile uint8_t  USB_Enum_Status;
-extern volatile uint8_t  USBSS_DevEnumStatus;
-extern volatile uint8_t  USBHS_DevEnumStatus;
-extern volatile uint8_t  USBSS_DevConfig;
-extern volatile uint8_t  USBHS_DevConfig;
 
 /* ================================================================
  *  Global variables for endpoint data transfer
  * ================================================================ */
 const uint8_t    *pUSBSS_Descr;
-const uint8_t    *pUSBHS_Descr;
 
 /* Setup Request */
 volatile uint8_t  USBSS_SetupReqCode;
@@ -35,13 +30,12 @@ volatile uint16_t USBSS_SetupReqIndex;
 volatile uint16_t USBSS_SetupReqLen;
 
 /* USB Device Status */
+volatile uint8_t  USBSS_DevConfig;
 volatile uint8_t  USBSS_DevAddr;
 volatile uint8_t  USBSS_DevSleepStatus;
+volatile uint8_t  USBSS_DevEnumStatus;
 volatile uint16_t USBSS_DevMaxPackLen;
 volatile uint8_t  USBSS_DevSpeed;
-
-/* USBHS EP0 buffer (shared with USBHS driver) */
-__attribute__ ((aligned(4))) uint8_t USBHS_EP0_Buf[64];
 
 /* ================================================================
  *  USBSS EP buffers (referenced by usbss_device.c endpoint init)
