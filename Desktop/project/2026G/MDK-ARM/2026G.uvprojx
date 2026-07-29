@@ -445,6 +445,11 @@
               <FileType>1</FileType>
               <FilePath>..\hardware\tjc_screen.c</FilePath>
             </File>
+            <File>
+              <FileName>wavegen.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\hardware\wavegen.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
