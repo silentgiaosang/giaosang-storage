@@ -27,8 +27,11 @@ static WaveType_t      g_latest_type = WAVE_SINE;
  * ================================================================ */
 static void RefreshWaveform(void)
 {
+    /* Static buffers — too large for stack (600*4 + 600*2 = 3.6KB, stack=1KB) */
+    static float    wave_buf[WAVE_PTS];
+    static uint16_t scr_buf[WAVE_PTS];
+
     /* 1. 合成波形数据 */
-    float wave_buf[WAVE_PTS];
     uint16_t n = WaveGen_Generate(wave_buf, WAVE_PTS, g_latest_type,
                                   (g_cycle == CYC_1) ? 1 : 3,
                                   &g_latest_result, &g_latest_peaks);
@@ -45,7 +48,6 @@ static void RefreshWaveform(void)
     range += margin * 2.0f;
     vmin -= margin;
 
-    uint16_t scr_buf[WAVE_PTS];
     for (uint16_t i = 0; i < n; i++) {
         float v = (wave_buf[i] - vmin) / range;
         uint16_t y = (uint16_t)(v * GRAPH_H);
