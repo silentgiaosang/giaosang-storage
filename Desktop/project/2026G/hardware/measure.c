@@ -102,6 +102,8 @@ void Measure_Process(void)
 
     case 0:  /* Idle — wait for interval */
         if (now - last_measure_tick >= MEASURE_INTERVAL_MS) {
+            printf("[M] start coarse (now=%lu last=%lu)\r\n",
+                   (unsigned long)now, (unsigned long)last_measure_tick);
             AD9220_Start(AD9220_TIER_MID);
             coarse_running = 1;
         }
@@ -110,6 +112,7 @@ void Measure_Process(void)
     case 1:  /* Waiting for coarse DMA */
         if (AD9220_DataReady()) {
             AD9220_ClearReady();
+            printf("[M] coarse done\r\n");
             float32_t freq_khz = find_dominant_freq(ad9220_buffer, 2000000);
             AD9220_Tier tier = select_tier(freq_khz);
             AD9220_Start(tier);

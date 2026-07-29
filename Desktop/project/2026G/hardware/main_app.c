@@ -10,7 +10,7 @@
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
-
+#include "stdio.h"
 /* ================================================================
  *  显示状态
  * ================================================================ */
@@ -213,11 +213,22 @@ void App_Init(UART_HandleTypeDef *huart)
  * ================================================================ */
 void App_Loop(void)
 {
+    static uint32_t heartbeat_tick = 0;
+    uint32_t now = HAL_GetTick();
+
+    /* Heartbeat: every 5s to confirm main loop is alive */
+    if (now - heartbeat_tick >= 5000) {
+        printf("[HB] main loop alive, mode=%d cyc=%d\r\n",
+               (int)g_disp_mode, (int)g_cycle);
+        heartbeat_tick = now;
+    }
+
     /* 1. 测量在后台持续运行 */
     Measure_Process();
 
     /* 2. 有新数据 → 缓存结果 → 自动刷新当前显示 */
     if (Measure_DataReady()) {
+        printf("[APP] data ready, refreshing display\r\n");
         Measure_GetLatest(&g_latest_result, &g_latest_peaks, &g_latest_type);
 
         if (g_disp_mode == MODE_WAVEFORM) {
@@ -225,5 +236,6 @@ void App_Loop(void)
         } else {
             RefreshSpectrum();
         }
+        printf("[APP] refresh done\r\n");
     }
 }
