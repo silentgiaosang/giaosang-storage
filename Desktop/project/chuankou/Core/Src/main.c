@@ -71,10 +71,14 @@ int main(void)
   HAL_Init();
   SystemClock_Config();
   MX_GPIO_Init();
+  MX_USART1_UART_Init();
   MX_USART6_UART_Init();
 
   /* USER CODE BEGIN 2 */
   HAL_Delay(1500);  /* 等待屏幕就绪 */
+
+  static const char *boot = "Start\r\n";
+  HAL_UART_Transmit(&huart1, (uint8_t *)boot, strlen(boot), 100);
 
   /* 生成一周期正弦波, 值映射到 0 ~ GRAPH_H */
   for (uint16_t i = 0; i < WAVE_POINTS; i++)
@@ -111,6 +115,10 @@ int main(void)
         tjc_add_val(y);
         HAL_Delay(1);
     }
+
+    /* 帧结束调试: USART1 输出 */
+    static const char *done = ".\r\n";
+    HAL_UART_Transmit(&huart1, (uint8_t *)done, strlen(done), 100);
 
     HAL_Delay(500);  /* 帧间延时 */
     /* USER CODE END 3 */
