@@ -130,7 +130,7 @@ void TJC_RxByteCallback(uint8_t byte)
             uint8_t event = tjc_rx_buf[3];
             /* uint8_t value = tjc_rx_buf[4];  (unused for buttons) */
 
-            if (event == 0x01) {
+            if (event == 0x01 && !tjc_busy) {
                 TJC_HandleTouch(page, ctrl, 0);
             }
         }
@@ -231,7 +231,7 @@ void App_Loop(void)
     /* 1. 测量在后台持续运行 */
     Measure_Process();
 
-    /* 2. 缓存最新结果 (供按钮触发时使用)，不自动刷新显示 */
+    /* 2. 缓存最新结果 (供按钮触发显示时使用) */
     if (Measure_DataReady()) {
         Measure_GetLatest(&g_latest_result, &g_latest_peaks, &g_latest_type);
     }

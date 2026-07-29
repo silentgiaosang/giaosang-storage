@@ -57,4 +57,7 @@ void TJC_HandleTouch(uint8_t page, uint8_t ctrl_id, uint8_t value);
 void App_Init(UART_HandleTypeDef *huart);
 void App_Loop(void);
 
+/* Busy flag: set during waveform send, checked in RX callback to prevent re-entry */
+extern volatile uint8_t tjc_busy;
+
 #endif

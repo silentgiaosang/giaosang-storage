@@ -402,6 +402,11 @@ static WaveType_t detect_wave_type(void)
 
     float f0 = g_peaks.freq_hz[0];
     if (f0 < 1.0f) return WAVE_SINE;
+    float a1 = g_peaks.vpp_mv[0];
+
+    /* If fundamental dominates (>10× 2nd peak), it's sine regardless of count */
+    if (g_peaks.count >= 2 && g_peaks.vpp_mv[1] * 10.0f < a1)
+        return WAVE_SINE;
 
     /* Check 2nd peak at 3× fundamental */
     if (g_peaks.count >= 2) {
@@ -416,7 +421,6 @@ static WaveType_t detect_wave_type(void)
     }
 
     /* Harmonic pattern — compare amplitudes */
-    float a1 = g_peaks.vpp_mv[0];
     if (a1 < 1.0f) return WAVE_SINE;
 
     /* Square wave: A3 ≈ A1/3, A5 ≈ A1/5 */
