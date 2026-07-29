@@ -130,7 +130,7 @@ void TJC_RxByteCallback(uint8_t byte)
             uint8_t event = tjc_rx_buf[3];
             /* uint8_t value = tjc_rx_buf[4];  (unused for buttons) */
 
-            if (event == 0x01 && !tjc_busy) {
+            if (event == 0x01) {
                 TJC_HandleTouch(page, ctrl, 0);
             }
         }
