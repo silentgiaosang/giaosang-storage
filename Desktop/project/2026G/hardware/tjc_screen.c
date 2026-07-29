@@ -227,6 +227,9 @@ void TJC_DrawWaveform(const uint16_t *data, uint16_t len)
     HAL_Delay(50);
 
     printf("[TJC] sending %d points...\r\n", (int)n);
+    printf("[TJC] input range: [%u..%u]  output range: [%u..%u]\r\n",
+           (unsigned)data[0], (unsigned)data[n-1],
+           (unsigned)(GRAPH_H - data[0]), (unsigned)(GRAPH_H - data[n-1]));
 
     /* 逐点发送 (与 HMI send_waveform 格式一致) */
     for (uint16_t i = 0; i < n; i++) {
