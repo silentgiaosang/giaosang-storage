@@ -231,16 +231,8 @@ void App_Loop(void)
     /* 1. 测量在后台持续运行 */
     Measure_Process();
 
-    /* 2. 有新数据 → 缓存结果 → 自动刷新当前显示 */
+    /* 2. 缓存最新结果 (供按钮触发时使用)，不自动刷新显示 */
     if (Measure_DataReady()) {
-        printf("[APP] data ready, refreshing display\r\n");
         Measure_GetLatest(&g_latest_result, &g_latest_peaks, &g_latest_type);
-
-        if (g_disp_mode == MODE_WAVEFORM) {
-            RefreshWaveform();
-        } else {
-            RefreshSpectrum();
-        }
-        printf("[APP] refresh done\r\n");
     }
 }
