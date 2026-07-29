@@ -102,8 +102,8 @@ void Measure_Process(void)
 
     case 0:  /* Idle — wait for interval */
         if (now - last_measure_tick >= MEASURE_INTERVAL_MS) {
-            printf("[M] start coarse (now=%lu last=%lu)\r\n",
-                   (unsigned long)now, (unsigned long)last_measure_tick);
+            last_measure_tick = now;   /* reset timer BEFORE starting, so timeouts work */
+            printf("[M] start coarse (now=%lu)\r\n", (unsigned long)now);
             AD9220_Start(AD9220_TIER_MID);
             coarse_running = 1;
         }

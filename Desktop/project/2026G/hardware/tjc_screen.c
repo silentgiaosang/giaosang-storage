@@ -226,6 +226,8 @@ void TJC_DrawWaveform(const uint16_t *data, uint16_t len)
     TJC_ClearGraph();
     HAL_Delay(50);
 
+    printf("[TJC] sending %d points...\r\n", (int)n);
+
     /* 逐点发送 (与 HMI send_waveform 格式一致) */
     for (uint16_t i = 0; i < n; i++) {
         uint16_t y = GRAPH_H - data[i];
@@ -235,7 +237,12 @@ void TJC_DrawWaveform(const uint16_t *data, uint16_t len)
                             "add %s,0,%u", HMI_CURVE, (unsigned)y);
         uart_send((uint8_t *)cmd_buf, slen);
         send_end();
+
+        if ((i + 1) % 100 == 0) {
+            printf("[TJC] %d/%d sent\r\n", (int)(i + 1), (int)n);
+        }
     }
+    printf("[TJC] all %d points sent\r\n", (int)n);
 }
 
 /**
