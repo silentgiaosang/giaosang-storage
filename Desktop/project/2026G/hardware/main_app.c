@@ -130,7 +130,7 @@ void TJC_RxByteCallback(uint8_t byte)
             uint8_t event = tjc_rx_buf[3];
             /* uint8_t value = tjc_rx_buf[4];  (unused for buttons) */
 
-            if (event == 0x01) {
+            if (event == 0x01 && !tjc_busy) {
                 TJC_HandleTouch(page, ctrl, 0);
             }
         }
@@ -158,28 +158,31 @@ void TJC_HandleTouch(uint8_t page, uint8_t ctrl_id, uint8_t value)
     case 10:  /* b_start — 开始测量 → 波形模式 + 3T */
         g_disp_mode = MODE_WAVEFORM;
         g_cycle     = CYC_3;
+        TJC_ClearGraph();
         RefreshWaveform();
         break;
 
     case 11:  /* b_wave — 输出波形 → 波形模式 + 3T */
         g_disp_mode = MODE_WAVEFORM;
         g_cycle     = CYC_3;
+        TJC_ClearGraph();
         RefreshWaveform();
         break;
 
     case 12:  /* b_spec — 输出频谱 */
         g_disp_mode = MODE_SPECTRUM;
+        TJC_ClearGraph();
         RefreshSpectrum();
         break;
 
-    case 13:  /* b_cyc1 — 切换1周期 */
+    case 13:  /* b_cyc1 — 切换1周期 (不清屏，直接覆盖) */
         g_cycle = CYC_1;
         if (g_disp_mode == MODE_WAVEFORM) {
             RefreshWaveform();
         }
         break;
 
-    case 14:  /* b_cyc3 — 切换3周期 */
+    case 14:  /* b_cyc3 — 切换3周期 (不清屏，直接覆盖) */
         g_cycle = CYC_3;
         if (g_disp_mode == MODE_WAVEFORM) {
             RefreshWaveform();

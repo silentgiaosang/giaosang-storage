@@ -36,6 +36,7 @@ static const uint8_t TJC_END[3] = {0xFF, 0xFF, 0xFF};
  * ================================================================ */
 static UART_HandleTypeDef *tjc_uart = NULL;
 static char cmd_buf[256];   // 指令缓冲区
+volatile uint8_t tjc_busy = 0;   /* guard against re-entry during waveform send */
 
 /* ================================================================
  * 底层发送
@@ -222,9 +223,7 @@ void TJC_DrawWaveform(const uint16_t *data, uint16_t len)
 
     uint16_t n = (len > GRAPH_W) ? GRAPH_W : len;
 
-    /* 清空曲线通道 */
-    TJC_ClearGraph();
-    HAL_Delay(50);
+    tjc_busy = 1;   /* block RX touch processing during send */
 
     printf("[TJC] sending %d points...\r\n", (int)n);
     printf("[TJC] input range: [%u..%u]  output range: [%u..%u]\r\n",
@@ -245,6 +244,7 @@ void TJC_DrawWaveform(const uint16_t *data, uint16_t len)
             printf("[TJC] %d/%d sent\r\n", (int)(i + 1), (int)n);
         }
     }
+    tjc_busy = 0;
     printf("[TJC] all %d points sent\r\n", (int)n);
 }
 
