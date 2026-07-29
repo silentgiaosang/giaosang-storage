@@ -2,7 +2,7 @@
 /**
   ******************************************************************************
   * @file           : main.c
-  * @brief          : TJC Waveform - Minimal Sine Wave Demo (1 cycle, 600 pts)
+  * @brief          : TJC Waveform - 参考 tjc_screen.c 的 addt 模式
   ******************************************************************************
   */
 /* USER CODE END Header */
@@ -14,131 +14,106 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
-#include <stdarg.h>
 #include <math.h>
 #include <string.h>
 /* USER CODE END Includes */
 
-/* Private typedef -----------------------------------------------------------*/
-/* USER CODE BEGIN PTD */
-
-/* USER CODE END PTD */
-
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define WAVE_POINTS  600          /* 一周期点数, 匹配 s0 控件宽度 */
+#define GRAPH_W       600
+#define GRAPH_H       460
+#define WAVE_POINTS   GRAPH_W
 #ifndef M_PI
-#define M_PI         3.14159265358979323846f
+#define M_PI          3.14159265358979323846f
 #endif
 /* USER CODE END PD */
 
-/* Private macro -------------------------------------------------------------*/
-/* USER CODE BEGIN PM */
-
-/* USER CODE END PM */
-
 /* Private variables ---------------------------------------------------------*/
-
 /* USER CODE BEGIN PV */
-static uint8_t wave_buf[WAVE_POINTS];   /* 正弦波数据, 值域 0~255 */
+static uint16_t wave_buf[WAVE_POINTS];   /* 正弦波, 值域 0 ~ GRAPH_H */
+static char tjc_buf[256];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-static void TJC_SendCmd(const char *fmt, ...);
-static void TJC_SendRaw(const uint8_t *data, uint16_t len);
-static void DelayMs(uint32_t ms);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-/* ---------- TJC 屏幕通信 (USART6: PC6=TX, PC7=RX) ---------- */
-
-/* 发送 ASCII 指令 + FF FF FF 结束符 */
-static void TJC_SendCmd(const char *fmt, ...)
+static void tjc_send(const uint8_t *data, uint16_t len)
 {
-    char buf[256];
-    va_list args;
-    va_start(args, fmt);
-    int len = vsnprintf(buf, sizeof(buf), fmt, args);
-    va_end(args);
-
-    static const uint8_t end_mark[] = {0xFF, 0xFF, 0xFF};
-    HAL_UART_Transmit(&huart6, (uint8_t *)buf, len, 100);
-    HAL_UART_Transmit(&huart6, (uint8_t *)end_mark, 3, 100);
+    HAL_UART_Transmit(&huart6, (uint8_t *)data, len, 100);
 }
 
-/* 发送原始字节 (addt 透传数据) */
-static void TJC_SendRaw(const uint8_t *data, uint16_t len)
+static const uint8_t TJC_END[3] = {0xFF, 0xFF, 0xFF};
+static void tjc_end(void) { tjc_send(TJC_END, 3); }
+
+static void tjc_cle(uint8_t ch)
 {
-    HAL_UART_Transmit(&huart6, (uint8_t *)data, len, HAL_MAX_DELAY);
+    int len = snprintf(tjc_buf, sizeof(tjc_buf), "cle s0,%d", ch);
+    tjc_send((uint8_t *)tjc_buf, len);
+    tjc_end();
 }
 
-/* 毫秒级延时 */
-static void DelayMs(uint32_t ms)
+static void tjc_add_val(uint16_t val)
 {
-    HAL_Delay(ms);
+    int len = snprintf(tjc_buf, sizeof(tjc_buf), "%d", val);
+    tjc_send((uint8_t *)tjc_buf, len);
+    tjc_end();
 }
 
 /* USER CODE END 0 */
 
-/**
-  * @brief  The application entry point.
-  * @retval int
-  */
 int main(void)
 {
-
-  /* USER CODE BEGIN 1 */
-
-  /* USER CODE END 1 */
-
-  /* MCU Configuration--------------------------------------------------------*/
-
   HAL_Init();
   SystemClock_Config();
-
-  /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART6_UART_Init();
 
   /* USER CODE BEGIN 2 */
+  HAL_Delay(1500);  /* 等待屏幕就绪 */
 
-  /* 等待 TJC 屏幕初始化完成 */
-  HAL_Delay(1000);
-
-  /* 生成一周期正弦波: y = 127.5 + 127 * sin(2π * i / 600) */
+  /* 生成一周期正弦波, 值映射到 0 ~ GRAPH_H */
   for (uint16_t i = 0; i < WAVE_POINTS; i++)
   {
       float phase = 2.0f * M_PI * i / WAVE_POINTS;
-      float val   = 127.5f + 127.0f * sinf(phase);
-
-      if (val < 0.0f)   val = 0.0f;
-      if (val > 255.0f) val = 255.0f;
-
-      wave_buf[i] = (uint8_t)(val + 0.5f);
+      float val   = (GRAPH_H / 2.0f) + (GRAPH_H / 2.0f - 1) * sinf(phase);
+      if (val < 0.0f)       val = 0.0f;
+      if (val > GRAPH_H)    val = (float)GRAPH_H;
+      wave_buf[i] = (uint16_t)(val + 0.5f);
   }
-
   /* USER CODE END 2 */
 
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
   while (1)
   {
-    /* USER CODE END WHILE */
-
     /* USER CODE BEGIN 3 */
 
-    /* add 逐点模式: 每个点一条 ASCII 指令, 简单可靠 */
+    /* 1. 清除曲线 */
+    tjc_cle(0);
+    HAL_Delay(20);
+
+    /* 2. addt 前缀: 告知屏幕将发送 WAVE_POINTS 个点 */
+    int len = snprintf(tjc_buf, sizeof(tjc_buf), "addt s0,0,%d", WAVE_POINTS);
+    tjc_send((uint8_t *)tjc_buf, len);
+    tjc_end();
+    HAL_Delay(10);
+
+    /* 3. 逐点发送 ASCII 值 + FF FF FF */
     for (uint16_t i = 0; i < WAVE_POINTS; i++)
     {
-        TJC_SendCmd("add s0.id,0,%d", wave_buf[i]);
-    }
-    DelayMs(500);  /* 帧间延时 */
+        /* TJC 曲线 Y轴: 0=顶部, GRAPH_H=底部, 翻转使其底部=0 */
+        uint16_t y = GRAPH_H - wave_buf[i];
+        if (y > GRAPH_H) y = GRAPH_H;
 
-  /* USER CODE END 3 */
+        tjc_add_val(y);
+        HAL_Delay(1);
+    }
+
+    HAL_Delay(500);  /* 帧间延时 */
+    /* USER CODE END 3 */
   }
 }
 
@@ -151,14 +126,9 @@ void SystemClock_Config(void)
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
-  /** Configure the main internal regulator output voltage
-  */
   __HAL_RCC_PWR_CLK_ENABLE();
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
 
-  /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
@@ -172,8 +142,6 @@ void SystemClock_Config(void)
     Error_Handler();
   }
 
-  /** Initializes the CPU, AHB and APB buses clocks
-  */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
@@ -187,24 +155,12 @@ void SystemClock_Config(void)
   }
 }
 
-/* USER CODE BEGIN 4 */
-
-/* USER CODE END 4 */
-
-/**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
 void Error_Handler(void)
 {
   __disable_irq();
-  while (1)
-  {
-  }
+  while (1) {}
 }
 
 #ifdef USE_FULL_ASSERT
-void assert_failed(uint8_t *file, uint32_t line)
-{
-}
+void assert_failed(uint8_t *file, uint32_t line) {}
 #endif /* USE_FULL_ASSERT */
