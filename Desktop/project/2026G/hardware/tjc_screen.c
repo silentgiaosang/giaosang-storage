@@ -207,25 +207,27 @@ void TJC_UpdateParams(const MeasureResult_t *r)
 }
 
 /**
- * 绘制时域波形
+ * 绘制时域波形 — HMI add 逐点模式
  *
- * TJC addt 协议:
- *   "addt s0,0,N\xFF\xFF\xFF" → 屏幕应答后 → 发送 N×2 字节二进制小端序
+ * 参照 HMI 项目 send_waveform():
+ *   cle s0,0\xFF\xFF\xFF             ← 清空通道
+ *   add s0,0,<val>\xFF\xFF\xFF       ← 逐点发送，每点以 FF FF FF 结尾
+ *   ... 共 600 点
+ *
  * Y轴: 0=顶部, height=底部, 需要翻转 (GRAPH_H - val)
  */
 void TJC_DrawWaveform(const uint16_t *data, uint16_t len)
 {
     if (!data || len == 0) return;
 
+    uint16_t n = (len > GRAPH_W) ? GRAPH_W : len;
+
+    /* 清空曲线通道 */
     TJC_ClearGraph();
     HAL_Delay(50);
 
-    uint16_t n_points = len;
-    if (n_points > GRAPH_W) n_points = GRAPH_W;
-
-    /* 先用 add 单点模式测试 (ASCII + 帧尾)，看曲线控件是否响应 */
-    printf("Testing add x%d...\r\n", (int)n_points);
-    for (uint16_t i = 0; i < n_points; i += 10) {  /* 每10点发1个，做稀疏测试 */
+    /* 逐点发送 (与 HMI send_waveform 格式一致) */
+    for (uint16_t i = 0; i < n; i++) {
         uint16_t y = GRAPH_H - data[i];
         if (y > GRAPH_H) y = GRAPH_H;
 
@@ -233,15 +235,7 @@ void TJC_DrawWaveform(const uint16_t *data, uint16_t len)
                             "add %s,0,%u", HMI_CURVE, (unsigned)y);
         uart_send((uint8_t *)cmd_buf, slen);
         send_end();
-        HAL_Delay(2);  /* 给屏幕时间处理 */
     }
-
-    /* 刷新 */
-    snprintf(cmd_buf, sizeof(cmd_buf), "ref %s", HMI_CURVE);
-    uart_send((uint8_t *)cmd_buf, strlen(cmd_buf));
-    send_end();
-
-    printf("waveform test %d sparse points sent\r\n", (int)(n_points / 10));
 }
 
 /**

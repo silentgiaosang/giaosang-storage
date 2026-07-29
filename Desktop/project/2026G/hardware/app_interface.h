@@ -24,16 +24,4 @@ typedef struct {
     float amp_mv[3];
 } MeasureResult_t;
 
-/* ---- 调 ---- */
-uint8_t App_MeasureRequested(void);     // 用户按按钮 → 返回1
-DispMode_t App_GetMode(void);           // 当前显示模式
-Cycle_t App_GetCycle(void);             // 1T or 3T
-
-void App_SubmitResult(MeasureResult_t *result,
-                      const float *wave_data, uint16_t wave_len,
-                      uint32_t sample_rate,
-                      const float *fft_mag, uint16_t fft_len);
-
-void App_ShowError(const char *msg);
-
 #endif

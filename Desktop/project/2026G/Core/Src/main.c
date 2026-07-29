@@ -135,15 +135,8 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    Measure_Process();
-
-    /* Button-triggered measurement */
-    if (App_MeasureRequested()) {
-        Measure_Trigger();
-    }
-
-    /* Screen touch/housekeeping */
-    App_Loop();
+    Measure_Process();      /* continuous auto-measurement */
+    App_Loop();             /* display refresh + touch handling */
   }
   /* USER CODE END 3 */
 }
