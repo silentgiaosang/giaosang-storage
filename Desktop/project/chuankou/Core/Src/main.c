@@ -131,10 +131,19 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-    /* addt: 透传模式发送整帧波形数据 */
+    /* addt 透传协议:
+     *   1. 发送 addt 指令 + FF FF FF
+     *   2. 等待设备就绪 (~100ms, 设备回 0xFE)
+     *   3. 发送纯二进制数据
+     *   4. 发送 0x01 + FF FF FF 退出透传模式, 触发刷新 */
     TJC_SendCmd("addt s0.id,0,%d", WAVE_POINTS);
     DelayMs(100);
     TJC_SendRaw(wave_buf, WAVE_POINTS);
+
+    /* 透传结束标记: 发送无效指令 \x01 确保退出透传 */
+    static const uint8_t addt_end[] = {0x01, 0xFF, 0xFF, 0xFF};
+    HAL_UART_Transmit(&huart6, addt_end, 4, 100);
+
     DelayMs(550);
 
   /* USER CODE END 3 */
