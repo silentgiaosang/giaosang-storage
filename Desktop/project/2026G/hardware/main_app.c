@@ -5,6 +5,7 @@
 
 #include "main.h"
 #include "tjc_screen.h"
+#include "measure.h"
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
@@ -174,10 +175,9 @@ void App_Init(UART_HandleTypeDef *huart)
 
 void App_Loop(void)
 {
-    // 主要工作由触摸事件驱动, 这里可以放:
-    // - 自动定时测量
-    // - 按键扫描 (硬件按键)
-    // - 看门狗喂狗
+    if (App_MeasureRequested()) {
+        Measure_Trigger();
+    }
 }
 
 /* ================================================================

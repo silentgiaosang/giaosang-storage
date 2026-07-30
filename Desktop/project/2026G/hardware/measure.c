@@ -11,7 +11,7 @@
 
 /* Multi-peak detection */
 #define MAX_PEAKS             3
-#define NOISE_MULT            8.0f
+#define NOISE_MULT            20.0f
 #define MIN_PEAK_SEPARATION   4
 
 /* Magnitude-to-Vpp: Vpp_mV = mag × 8/N × MV_PER_CODE */
@@ -67,6 +67,12 @@ static PeakResult_t   round_peaks[OUTPUT_ROUNDS];
 static AD9220_Result  round_results[OUTPUT_ROUNDS];
 static uint32_t       round_sr[OUTPUT_ROUNDS];
 static uint8_t        round_peak_counts[OUTPUT_ROUNDS];
+
+/* Latest validated result — always updated, screen reads on button press */
+static MeasureResult_t g_latest_res;
+static WaveType_t      g_latest_wtype;
+static uint32_t        g_latest_sr;
+static uint8_t         g_data_ready = 0;
 
 /* --- Forward declarations --- */
 static void build_hanning_window(void);
@@ -201,36 +207,56 @@ void Measure_Process(void)
             g_result = round_results[pick];
             best_sr  = round_sr[pick];
 
-            /* Build result */
-            MeasureResult_t res;
-            memset(&res, 0, sizeof(res));
-            res.vpp_mv      = g_result.vpp_mv;
-            res.vrms_mv     = g_result.vrms_mv;
-            res.f_base_hz   = g_peaks.freq_hz[0];
-            res.harmonic_count = g_peaks.count;
+            /* Always build result → store globally */
+            memset(&g_latest_res, 0, sizeof(g_latest_res));
+            g_latest_res.vpp_mv      = g_result.vpp_mv;
+            g_latest_res.vrms_mv     = g_result.vrms_mv;
+            g_latest_res.f_base_hz   = g_peaks.freq_hz[0];
+            g_latest_res.harmonic_count = g_peaks.count;
             for (int i = 0; i < g_peaks.count; i++) {
-                res.freq_hz[i] = g_peaks.freq_hz[i];
-                /* SINE: U1 = Vpp (时域直测); MULTITONE: 用FFT幅值 */
+                g_latest_res.freq_hz[i] = g_peaks.freq_hz[i];
                 if (g_peaks.count == 1 && i == 0)
-                    res.amp_mv[i] = res.vpp_mv;
+                    g_latest_res.amp_mv[i] = g_latest_res.vpp_mv;
                 else
-                    res.amp_mv[i] = g_peaks.vpp_mv[i];
+                    g_latest_res.amp_mv[i] = g_peaks.vpp_mv[i];
+            }
+            g_latest_wtype = detect_wave_type();
+            g_latest_sr    = best_sr;
+            g_data_ready   = 1;
+
+            /* Debug: print latest result every ~2s */
+            {
+                static uint32_t last_dbg_tick = 0;
+                if (HAL_GetTick() - last_dbg_tick >= 2000) {
+                    last_dbg_tick = HAL_GetTick();
+                    printf("=== MEASURE RESULT ===\r\n");
+                    printf("  f=%.1fkHz  Vpp=%.1fmV  Vrms=%.1fmV  SR=%lu\r\n",
+                           (double)(g_latest_res.f_base_hz / 1000.0),
+                           (double)g_latest_res.vpp_mv,
+                           (double)g_latest_res.vrms_mv, g_latest_sr);
+                    printf("  type=%s  peaks=%d\r\n",
+                           (g_latest_wtype == WAVE_SINE) ? "SINE" : "MULTITONE",
+                           g_peaks.count);
+                    for (int pi = 0; pi < g_peaks.count; pi++) {
+                        printf("  peak[%d]: f=%.2fkHz  Vpp=%.1fmV\r\n",
+                               pi,
+                               (double)(g_peaks.freq_hz[pi] / 1000.0),
+                               (double)g_peaks.vpp_mv[pi]);
+                    }
+                    printf("========================\r\n");
+                }
             }
 
-            /* Type → serial (always) */
-            WaveType_t wtype = detect_wave_type();
-            // print_wave_type(wtype);  /* disabled: filter debug only */
-
-            /* Button press → screen update */
+            /* Button press → synthesize waveform → screen */
             if (g_button_triggered) {
                 g_button_triggered = 0;
 
                 uint16_t n_cycles = 3;
                 uint16_t wave_len;
-                if (wtype == WAVE_MULTITONE) {
+                if (g_latest_wtype == WAVE_MULTITONE) {
                     wave_len = synthesize_harmonic(ma_buf, n_cycles);
                 } else {
-                    wave_len = synthesize_waveform(ma_buf, n_cycles, wtype);
+                    wave_len = synthesize_waveform(ma_buf, n_cycles, g_latest_wtype);
                 }
 
                 float vmin = ma_buf[0], vmax = ma_buf[0];
@@ -254,8 +280,7 @@ void Measure_Process(void)
                 uint16_t show_len = (App_GetCycle() == CYC_1) ? (wave_len / 3) : wave_len;
                 TJC_DrawWaveform(scr_buf, show_len);
 
-                /* printf("Screen: ...");  disabled: filter debug only */
-                App_SubmitResult(&res, NULL, 0, best_sr, NULL, 0);
+                App_SubmitResult(&g_latest_res, NULL, 0, g_latest_sr, NULL, 0);
             }
 
             /* Reset for next cycle */
@@ -435,15 +460,18 @@ static void analyze_peaks(void)
     }
 
     /* Take top MAX_PEAKS, apply scalloping correction.
-       Drop peaks below 5% of the strongest (noise floor guard) */
+       Drop peaks below 10% of the strongest AND below 50mV absolute floor.
+       Merge adjacent peaks from spectral leakage (< 5% freq gap → same tone). */
     memset(&g_peaks, 0, sizeof(g_peaks));
     float main_mag = 0.0f;
     for (int j = 0; j < (int)nc; j++) {
         if (cand[j].mag > main_mag) main_mag = cand[j].mag;
     }
     uint8_t peak_count = 0;
-    for (int j = 0; j < MAX_PEAKS && j < (int)nc; j++) {
-        if (j > 0 && cand[j].mag < main_mag * 0.05f) continue;
+    for (int j = 0; j < (int)nc && peak_count < MAX_PEAKS; j++) {
+        /* All peaks must clear relative threshold (10% of strongest) */
+        if (cand[j].mag < main_mag * 0.10f) continue;
+
         /* Amplitude correction for Hanning scalloping loss */
         int32_t bi = cand[j].bin;
         float32_t delta_f = cand[j].freq / bin_res - (float32_t)bi;
@@ -458,9 +486,27 @@ static void analyze_peaks(void)
         }
         if (sinc_corr < 0.3f) sinc_corr = 0.3f;
         float32_t mag_corr = cand[j].mag / sinc_corr;
+        float32_t vpp_mv = MAG_TO_VPP(mag_corr);
 
-        g_peaks.freq_hz[j] = cand[j].freq;
-        g_peaks.vpp_mv[j]  = MAG_TO_VPP(mag_corr);
+        /* Absolute floor: reject peaks below 50mV */
+        if (vpp_mv < 50.0f) continue;
+
+        /* Merge with previous peak if within 5% frequency gap (spectral leakage) */
+        if (peak_count > 0) {
+            float32_t prev_f = g_peaks.freq_hz[peak_count - 1];
+            float32_t ratio  = cand[j].freq / prev_f;
+            if (ratio < 1.05f) {
+                /* Same tone — keep the stronger one */
+                if (vpp_mv > g_peaks.vpp_mv[peak_count - 1]) {
+                    g_peaks.freq_hz[peak_count - 1] = cand[j].freq;
+                    g_peaks.vpp_mv[peak_count - 1]  = vpp_mv;
+                }
+                continue;
+            }
+        }
+
+        g_peaks.freq_hz[peak_count] = cand[j].freq;
+        g_peaks.vpp_mv[peak_count]  = vpp_mv;
         peak_count++;
     }
     g_peaks.count = peak_count;
