@@ -20,13 +20,6 @@
 /* Waveform synthesis */
 #define WAVE_PTS  600   /* fixed points per screen frame */
 
-typedef enum {
-    WAVE_SINE = 0,
-    WAVE_SQUARE,
-    WAVE_TRIANGLE,
-    WAVE_MULTITONE,
-} WaveType_t;
-
 AD9220_Result g_result;
 PeakResult_t  g_peaks;
 
@@ -139,9 +132,7 @@ void Measure_Process(void)
             float f_khz = find_dominant_freq(ad9220_buffer, sr);
             analyze_peaks();
 
-            printf("Tier%d sr=%lu f=%.3fkHz peaks=%d\r\n",
-                   (int)scan_tier_idx, (unsigned long)sr,
-                   (double)f_khz, (int)g_peaks.count);
+            /* printf("Tier..."); disabled */
 
             /* Keep best (most peaks; tie-break: higher Vpp) */
             if (g_peaks.count > best_peak_count ||
@@ -188,7 +179,7 @@ void Measure_Process(void)
 
         if (round_cnt < OUTPUT_ROUNDS) {
             /* Start next round immediately */
-            printf("Round %d/3 done, starting next...\r\n", (int)round_cnt);
+            // printf("Round %d/3 done, starting next...\r\n", (int)round_cnt);
             scan_tier_idx   = 0;
             best_peak_count = 0;
             memset(&best_peaks,  0, sizeof(best_peaks));
@@ -226,11 +217,11 @@ void Measure_Process(void)
                     res.amp_mv[i] = g_peaks.vpp_mv[i];
             }
 
-            /* Type → serial */
+            /* Type → serial (always) */
             WaveType_t wtype = detect_wave_type();
-            print_wave_type(wtype);
+            // print_wave_type(wtype);  /* disabled: filter debug only */
 
-            /* Button → waveform */
+            /* Button press → screen update */
             if (g_button_triggered) {
                 g_button_triggered = 0;
 
@@ -263,22 +254,9 @@ void Measure_Process(void)
                 uint16_t show_len = (App_GetCycle() == CYC_1) ? (wave_len / 3) : wave_len;
                 TJC_DrawWaveform(scr_buf, show_len);
 
-                printf("Wave: %s sr=%lu cyc=%d len=%d\r\n",
-                       (wtype == WAVE_SINE) ? "SINE" : "MULTITONE",
-                       (unsigned long)best_sr, (int)n_cycles, (int)show_len);
+                /* printf("Screen: ...");  disabled: filter debug only */
+                App_SubmitResult(&res, NULL, 0, best_sr, NULL, 0);
             }
-
-            printf("Screen: f1=%.1f f2=%.1f f3=%.1f U1=%.0f U2=%.0f U3=%.0f U2/U1=%.3f U3/U1=%.3f cnt=%d\r\n",
-                   (double)res.f_base_hz,
-                   (double)(res.harmonic_count >= 2 ? res.freq_hz[1] : 0),
-                   (double)(res.harmonic_count >= 3 ? res.freq_hz[2] : 0),
-                   (double)res.amp_mv[0],
-                   (double)(res.harmonic_count >= 2 ? res.amp_mv[1] : 0),
-                   (double)(res.harmonic_count >= 3 ? res.amp_mv[2] : 0),
-                   (double)(res.harmonic_count >= 2 && res.amp_mv[0] > 1 ? res.amp_mv[1] / res.amp_mv[0] : 0),
-                   (double)(res.harmonic_count >= 3 && res.amp_mv[0] > 1 ? res.amp_mv[2] / res.amp_mv[0] : 0),
-                   (int)res.harmonic_count);
-            App_SubmitResult(&res, NULL, 0, best_sr, NULL, 0);
 
             /* Reset for next cycle */
             round_cnt = 0;

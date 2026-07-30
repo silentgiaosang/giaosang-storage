@@ -90,7 +90,7 @@ uint16_t WaveGen_Generate(float *buf, uint16_t buf_len, WaveType_t type,
     case WAVE_SINE:     return WaveGen_Sine(buf, buf_len, cycles, r);
     case WAVE_SQUARE:   return WaveGen_Square(buf, buf_len, cycles, r);
     case WAVE_TRIANGLE: return WaveGen_Triangle(buf, buf_len, cycles, r);
-    case WAVE_HARMONIC: return WaveGen_Harmonic(buf, buf_len, cycles, r, p);
+    case WAVE_MULTITONE: return WaveGen_Harmonic(buf, buf_len, cycles, r, p);
     default:
         break;
     }

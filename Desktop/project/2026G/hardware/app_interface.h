@@ -2,6 +2,7 @@
 #define __APP_INTERFACE_H
 
 #include <stdint.h>
+#include "main.h"
 
 /* ---- 模式 ---- */
 typedef enum {
@@ -23,5 +24,17 @@ typedef struct {
     float freq_hz[3];           // 升序, [0]=基频
     float amp_mv[3];
 } MeasureResult_t;
+
+/* ---- 调 ---- */
+uint8_t App_MeasureRequested(void);
+DispMode_t App_GetMode(void);
+Cycle_t App_GetCycle(void);
+
+void App_SubmitResult(MeasureResult_t *result,
+                      const float *wave_data, uint16_t wave_len,
+                      uint32_t sample_rate,
+                      const float *fft_mag, uint16_t fft_len);
+
+void App_ShowError(const char *msg);
 
 #endif

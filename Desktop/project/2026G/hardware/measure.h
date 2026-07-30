@@ -2,14 +2,13 @@
 #define __MEASURE_H__
 
 #include "ad9220.h"
-#include "app_interface.h"
 
 /* --- Wave type --- */
 typedef enum {
     WAVE_SINE = 0,
     WAVE_SQUARE,
     WAVE_TRIANGLE,
-    WAVE_HARMONIC,
+    WAVE_MULTITONE,
 } WaveType_t;
 
 /* --- Peak result --- */
@@ -21,12 +20,10 @@ typedef struct {
 
 /* --- Public API --- */
 void Measure_Init(void);
-void Measure_Process(void);                     /* call from main loop; auto-timed */
+void Measure_Process(void);
+void Measure_Trigger(void);
 
-uint8_t Measure_DataReady(void);                /* returns 1 when new data available, auto-clears */
-void Measure_GetLatest(MeasureResult_t *result, PeakResult_t *peaks, WaveType_t *type);
-
-/* Internal globals exposed for debug print only */
+/* Internal globals exposed for debug */
 extern AD9220_Result g_result;
 extern PeakResult_t  g_peaks;
 

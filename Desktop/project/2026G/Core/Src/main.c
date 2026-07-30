@@ -27,6 +27,7 @@
 #include "stdio.h"
 #include "measure.h"
 #include "tjc_screen.h"
+#include "string.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -74,9 +75,9 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
     if (huart->Instance == USART6) {
         static uint16_t rx_cnt = 0;
-        if (++rx_cnt <= 5) {
-            printf("RX byte: 0x%02X\r\n", usart6_rx_byte);
-        }
+        // if (++rx_cnt <= 5) {
+        //     printf("RX byte: 0x%02X\r\n", usart6_rx_byte);
+        // }
         TJC_RxByteCallback(usart6_rx_byte);
         HAL_UART_Receive_IT(&huart6, &usart6_rx_byte, 1);
     }
@@ -115,17 +116,24 @@ int main(void)
   MX_USART1_UART_Init();
   MX_TIM1_Init();
   MX_USART6_UART_Init();
+  MX_USART2_UART_Init();
+  /* 滤波器: 优先级最高，上电即发 */
+  {
+      static const char *cmd = "setfilter lowpass 700000 0 4 1\n";
+      HAL_UART_Transmit(&huart2, (uint8_t *)cmd, strlen(cmd), 100);
+  }
   /* USER CODE BEGIN 2 */
   Measure_Init();
-  printf("Screen init...\r\n");
+  // printf("Screen init...\r\n");
   App_Init(&huart6);
-  printf("Screen init done\r\n");
+  // printf("Screen init done\r\n");
 
   /* Start USART6 reception for touch events */
   if (HAL_UART_Receive_IT(&huart6, &usart6_rx_byte, 1) != HAL_OK) {
-      printf("USART6 RX start FAILED\r\n");
+      // printf("USART6 RX start FAILED\r\n");
   }
-  printf("USART6 RX started\r\n");
+  // printf("USART6 RX started\r\n");
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
