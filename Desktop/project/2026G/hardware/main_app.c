@@ -16,6 +16,21 @@ static Cycle_t    g_cycle     = CYC_1;
 /* 测量请求标志 (在主循环里轮询) */
 volatile uint8_t g_measure_requested = 0;
 
+/* 缓存上一次测量数据 (模式/周期切换时直接刷新, 无需重测) */
+static MeasureResult_t g_cached_result;
+static const float     *g_cached_wave = NULL;
+static uint16_t         g_cached_wave_len = 0;
+static uint32_t         g_cached_sample_rate = 0;
+static uint8_t          g_has_data = 0;
+
+static void RedrawWithCache(void)
+{
+    if (!g_has_data) return;
+    App_SubmitResult(&g_cached_result,
+                     g_cached_wave, g_cached_wave_len,
+                     g_cached_sample_rate, NULL, 0);
+}
+
 /** 调这个: 是否有新的测量请求 */
 uint8_t App_MeasureRequested(void)
 {
@@ -94,7 +109,7 @@ static void ToggleMode(DispMode_t mode)
     g_disp_mode = mode;
     TJC_BtnSetActive(HMI_BTN_WAVE, mode == MODE_WAVEFORM);
     TJC_BtnSetActive(HMI_BTN_SPEC, mode == MODE_SPECTRUM);
-    g_measure_requested = 1;  // 通知队友重新测量
+    RedrawWithCache();  // 用缓存数据直接切图, 不重测
 }
 
 static void ToggleCycle(Cycle_t cyc)
@@ -102,7 +117,7 @@ static void ToggleCycle(Cycle_t cyc)
     g_cycle = cyc;
     TJC_BtnSetActive(HMI_BTN_CYC1, cyc == CYC_1);
     TJC_BtnSetActive(HMI_BTN_CYC3, cyc == CYC_3);
-    g_measure_requested = 1;
+    RedrawWithCache();
 }
 
 void TJC_HandleTouch(uint8_t page, uint8_t ctrl_id, uint8_t value)
@@ -187,6 +202,13 @@ void App_SubmitResult(MeasureResult_t *result,
                       const float *fft_mag, uint16_t fft_len)
 {
     if (!result) return;
+
+    // 缓存数据 (模式/周期切换时直接复用)
+    memcpy(&g_cached_result, result, sizeof(MeasureResult_t));
+    g_cached_wave = wave_data;
+    g_cached_wave_len = wave_len;
+    g_cached_sample_rate = sample_rate;
+    g_has_data = 1;
 
     // 1. 更新参数文字
     TJC_UpdateParams(result);
