@@ -112,19 +112,19 @@ void TJC_HandleTouch(uint8_t page, uint8_t ctrl_id, uint8_t value)
 
     // 根据控件ID判断是哪个按钮 (ID需在HMI软件中确认!)
     switch (ctrl_id) {
-        case 11:  // b_wave
+        case 0x0A:  // b_wave
             ToggleMode(MODE_WAVEFORM);
             break;
-        case 12:  // b_spec
+        case 0x0B:  // b_spec
             ToggleMode(MODE_SPECTRUM);
             break;
-        case 13:  // b_cyc1
+        case 0x0C:  // b_cyc1
             ToggleCycle(CYC_1);
             break;
-        case 14:  // b_cyc3
+        case 0x0D:  // b_cyc3
             ToggleCycle(CYC_3);
             break;
-        case 10:  // b_start → 通知队友开始测量
+        case 0x0E:  // b_start
             g_measure_requested = 1;
             TJC_SetStatus("测量中...");
             break;

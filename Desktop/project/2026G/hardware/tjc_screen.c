@@ -223,25 +223,21 @@ void TJC_DrawWaveform(const uint16_t *data, uint16_t len)
     uint16_t n_points = len;
     if (n_points > GRAPH_W) n_points = GRAPH_W;
 
-    /* 先用 add 单点模式测试 (ASCII + 帧尾)，看曲线控件是否响应 */
-    printf("Testing add x%d...\r\n", (int)n_points);
-    for (uint16_t i = 0; i < n_points; i += 10) {  /* 每10点发1个，做稀疏测试 */
-        uint16_t y = GRAPH_H - data[i];
-        if (y > GRAPH_H) y = GRAPH_H;
+    /* add 逐点全量发送, 0-255范围, \xFF\xFF\xFF嵌入同一次传输 */
+    for (uint16_t i = 0; i < n_points; i++) {
+        uint16_t y = 255 - data[i];
+        if (y > 255) y = 255;
 
         int slen = snprintf(cmd_buf, sizeof(cmd_buf),
-                            "add %s,0,%u", HMI_CURVE, (unsigned)y);
+                            "add %s,0,%u\xff\xff\xff", HMI_CURVE, (unsigned)y);
         uart_send((uint8_t *)cmd_buf, slen);
-        send_end();
-        HAL_Delay(2);  /* 给屏幕时间处理 */
+        HAL_Delay(1);
     }
 
     /* 刷新 */
-    snprintf(cmd_buf, sizeof(cmd_buf), "ref %s", HMI_CURVE);
-    uart_send((uint8_t *)cmd_buf, strlen(cmd_buf));
-    send_end();
-
-    printf("waveform test %d sparse points sent\r\n", (int)(n_points / 10));
+    int slen = snprintf(cmd_buf, sizeof(cmd_buf),
+                        "ref %s\xff\xff\xff", HMI_CURVE);
+    uart_send((uint8_t *)cmd_buf, slen);
 }
 
 /**

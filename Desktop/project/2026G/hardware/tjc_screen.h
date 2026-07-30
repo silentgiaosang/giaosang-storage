@@ -21,7 +21,7 @@
 #define GRAPH_H  460
 
 /* ---- HMI 控件名 ---- */
-#define HMI_CURVE    "s0"
+#define HMI_CURVE    "s0.id"
 #define HMI_STATUS   "t_status"
 #define HMI_VPP      "t_vpp"
 #define HMI_VRMS     "t_vrms"
